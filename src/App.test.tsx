@@ -102,6 +102,21 @@ describe('wizard', () => {
     expect(wizardStore.getState().startLocal).toMatch(/^\d{4}-\d{2}-\d{2}T15:30$/);
   });
 
+  it('lets the oil slider move within each pizza’s cap', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole('radio', { name: /Napoletana classica/ }));
+    await user.click(confirmButton());
+    const oil = screen.getByLabelText("Olio d'oliva");
+    expect(oil).toBeEnabled();
+    expect(oil).toHaveAttribute('max', '1');
+
+    await user.click(screen.getByRole('button', { name: /Pizza e strumenti/ }));
+    await user.click(screen.getByRole('radio', { name: /Napoletana contemporanea/ }));
+    await user.click(confirmButton());
+    expect(screen.getByLabelText("Olio d'oliva")).toHaveAttribute('max', '2');
+  });
+
   it('marks both W fields invalid when the range is inverted', async () => {
     const user = userEvent.setup();
     render(<App />);

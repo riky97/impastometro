@@ -18,18 +18,18 @@ interface ProfileBase {
   idealW: Range;
   /** Fridge window the profile prefers (hours), informational. */
   preferredFridgeH: Range;
+  /** Olive oil is optional, as % of flour, from 0 up to this cap. */
+  oil: { maxPct: number };
 }
 
 export interface ClassicaProfile extends ProfileBase {
   id: 'classica';
-  oil: { locked: true };
   /** Salt goes in after this many minutes of mixing. */
   saltAddition: { kind: 'after-minutes'; minutes: number };
 }
 
 export interface ContemporaneaProfile extends ProfileBase {
   id: 'contemporanea';
-  oil: { locked: false; maxPct: number };
   saltAddition: { kind: 'after-first-water-stage' };
   saltRangePct: Range;
 }
@@ -47,7 +47,7 @@ export const CLASSICA: ClassicaProfile = {
   targetDoughTempC: { min: 24, max: 26 },
   idealW: { min: 250, max: 320 },
   preferredFridgeH: { min: 8, max: 24 }, // ASSUMPTION
-  oil: { locked: true },
+  oil: { maxPct: 1 }, // ASSUMPTION: the disciplinare has no oil; a small optional amount
   saltAddition: { kind: 'after-minutes', minutes: 3 },
 };
 
@@ -63,7 +63,7 @@ export const CONTEMPORANEA: ContemporaneaProfile = {
   targetDoughTempC: { min: 23, max: 25 },
   idealW: { min: 300, max: 360 },
   preferredFridgeH: { min: 24, max: 48 },
-  oil: { locked: false, maxPct: 2 },
+  oil: { maxPct: 2 },
   saltAddition: { kind: 'after-first-water-stage' },
 };
 

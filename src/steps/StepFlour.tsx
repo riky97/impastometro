@@ -87,9 +87,7 @@ export function StepFlour({ state, result }: { state: WizardState; result: CalcR
         max={oil.max}
         step={0.5}
         unit="%"
-        disabled={profile.oil.locked}
         onChange={(oilPct) => edit({ oilPct })}
-        hint={profile.oil.locked ? 'Nella napoletana classica non si usa olio.' : undefined}
       />
 
       <NumberField

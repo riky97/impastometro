@@ -33,11 +33,11 @@ describe('hydration bounds', () => {
     });
   });
 
-  it('locks oil for classica only', () => {
-    expect(oilBounds(PROFILES.classica)).toEqual({ min: 0, max: 0 });
+  it('caps oil per profile', () => {
+    expect(oilBounds(PROFILES.classica)).toEqual({ min: 0, max: 1 });
     expect(oilBounds(PROFILES.contemporanea)).toEqual({ min: 0, max: 2 });
     const r = calculate(referenceInput({ oilPct: 2 }));
-    expect(r.oilPct).toBe(0);
+    expect(r.oilPct).toBe(1);
   });
 });
 

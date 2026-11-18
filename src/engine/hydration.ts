@@ -34,6 +34,5 @@ export function clamp(value: number, min: number, max: number): number {
 export const waterPerKgG = (hydrationPct: number): number => hydrationPct * 10;
 
 export function oilBounds(profile: PizzaProfile): { min: number; max: number } {
-  if (profile.oil.locked) return { min: 0, max: 0 };
   return { min: OIL_LIMITS.minPct, max: Math.min(OIL_LIMITS.maxPct, profile.oil.maxPct) };
 }
