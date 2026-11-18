@@ -24,7 +24,9 @@ Do not add runtime dependencies without asking.
   wires it at startup. The schema is frozen: any change needs a version bump + `migrate()` step
   and must be discussed first.
 - Saved recipes (`recipes.ts`) have their own key `impastometro:recipes:v1` and their own zod schema,
-  loaded/saved through `persistence.ts`; the wizard schema above stays frozen. The app opens on the
+  loaded/saved through `persistence.ts`; the wizard schema above stays frozen. A recipe also keeps the
+  dates and measured dough temperature it was saved with (optional fields, so older recipes still
+  load); "Vedi ricetta" shows them read-only, "Duplica" starts a prefilled calculation with fresh dates. The app opens on the
   dashboard (`view` in `ui.ts`, not persisted); the in-progress calculation shows as a card.
 - `src/components` — presentational components. `src/steps` — one wizard step per file.
 

@@ -7,6 +7,7 @@ import { toCalcInput } from './state/selectors';
 import { useWizardState } from './state/store';
 import { setView, useStaleDates, useView } from './state/ui';
 import { Dashboard } from './steps/Dashboard';
+import { RecipeView } from './steps/RecipeView';
 import { ResultScreen } from './steps/ResultScreen';
 import { StepEquipment } from './steps/StepEquipment';
 import { StepFlour } from './steps/StepFlour';
@@ -20,10 +21,13 @@ export function App() {
   const view = useView();
   const result = useMemo(() => calculate(toCalcInput(state)), [state]);
   const home = view === 'home';
-  const showResult = !home && state.showResult && result.valid;
+  const recipeView = view === 'recipe';
+  const showResult = view === 'calc' && state.showResult && result.valid;
 
   return (
-    <div className={`mx-auto min-h-dvh w-full px-4 pb-10 ${showResult ? 'max-w-5xl' : 'max-w-xl'}`}>
+    <div
+      className={`mx-auto min-h-dvh w-full px-4 pb-10 ${showResult || recipeView ? 'max-w-5xl' : 'max-w-xl'}`}
+    >
       <header className="space-y-4 pt-5 pb-6">
         <div className="flex items-center justify-between gap-3">
           <h1 className="text-xl font-bold tracking-tight text-brand-800">Impastometro</h1>
@@ -36,12 +40,12 @@ export function App() {
               >
                 Ricette
               </button>
-              <NewCalculationButton />
+              {!recipeView && <NewCalculationButton />}
             </div>
           )}
         </div>
         {staleDates && <StaleDatesBanner />}
-        {!home && !showResult && (
+        {view === 'calc' && !showResult && (
           <>
             <ProgressBar confirmedCount={state.confirmed.filter(Boolean).length} total={4} />
             <StepTabs state={state} />
@@ -51,6 +55,8 @@ export function App() {
       <main>
         {home ? (
           <Dashboard state={state} />
+        ) : recipeView ? (
+          <RecipeView />
         ) : showResult ? (
           <ResultScreen state={state} result={result} />
         ) : (

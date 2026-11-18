@@ -5,17 +5,13 @@ import { createDefaultState } from './defaults';
 import { wizardSchema, type WizardState } from './schema';
 import { createStore, wizardStore } from './store';
 
-/** A saved recipe keeps the user's choices, never the dates or the in-progress bookkeeping. */
-export const recipeDataSchema = wizardSchema.omit({
-  version: true,
-  step: true,
-  confirmed: true,
-  showResult: true,
-  startLocal: true,
-  bakeLocal: true,
-  doughTempC: true,
-  showDryYeast: true,
-});
+/**
+ * A saved recipe keeps the user's choices plus the dates and measured dough temperature it was
+ * saved with. Those last four are optional so recipes saved before they existed still load.
+ */
+export const recipeDataSchema = wizardSchema
+  .omit({ version: true, step: true, confirmed: true, showResult: true })
+  .partial({ startLocal: true, bakeLocal: true, doughTempC: true, showDryYeast: true });
 
 export const recipeSchema = z.object({
   id: z.string().min(1),
@@ -66,15 +62,6 @@ export const recipeActions = {
   remove(id: string): void {
     recipesStore.setState((all) => all.filter((r) => r.id !== id));
   },
-  /** A copy right at the top, so it can be renamed and tweaked without touching the original. */
-  duplicate(id: string, nowMs: number): void {
-    recipesStore.setState((all) => {
-      const source = all.find((r) => r.id === id);
-      if (!source) return all;
-      const copyId = `${nowMs.toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-      return [{ ...source, id: copyId, name: `${source.name} (copia)`, savedAt: nowMs }, ...all];
-    });
-  },
   /** Adds the recipes whose id is not already saved; returns how many were added. */
   merge(incoming: Recipe[]): number {
     const known = new Set(recipesStore.getState().map((r) => r.id));
@@ -82,11 +69,15 @@ export const recipeActions = {
     if (fresh.length) recipesStore.setState((all) => [...fresh, ...all]);
     return fresh.length;
   },
-  /** "Rifai il calcolo": the recipe's inputs with fresh dates, waiting on the time step. */
+  /** "Duplica": the recipe's inputs with fresh dates, waiting on the time step. */
   open(recipe: Recipe, nowMs: number): void {
+    const fresh = createDefaultState(nowMs);
     wizardStore.setState(() => ({
-      ...createDefaultState(nowMs),
+      ...fresh,
       ...recipe.data,
+      startLocal: fresh.startLocal,
+      bakeLocal: fresh.bakeLocal,
+      doughTempC: null,
       confirmed: [true, true, true, false],
       step: 4,
     }));

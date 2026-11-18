@@ -61,7 +61,33 @@ describe('dashboard', () => {
     expect(storage.getItem(RECIPES_KEY)).toContain('contemporanea');
   });
 
-  it('keeps recipes across a reload and reopens one on the time step with fresh dates', async () => {
+  it('keeps recipes across a reload and shows one with the times it was saved with', async () => {
+    const user = userEvent.setup();
+    let stop = await loadPage(storage);
+    const { wizardStore } = await import('./state/store');
+    await user.click(screen.getByRole('button', { name: 'Nuovo impasto' }));
+    for (let step = 1; step <= 4; step++) await user.click(confirmButton());
+    wizardStore.setState((s) => ({
+      ...s,
+      startLocal: '2026-11-20T15:30',
+      bakeLocal: '2026-11-21T19:30',
+    }));
+    await user.click(screen.getByRole('button', { name: 'Salva ricetta' }));
+    closePage(stop);
+
+    stop = await loadPage(storage);
+    expect(screen.getByRole('heading', { name: 'Napoletana classica' })).toBeVisible();
+    await user.click(screen.getByRole('button', { name: 'Vedi ricetta' }));
+    expect(screen.getByRole('heading', { name: 'Tabella di marcia' })).toBeInTheDocument();
+    expect(screen.getByText('ven 20 nov, 15:30')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /Temperatura reale/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Salva ricetta' })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Ricette' }));
+    expect(screen.getByRole('heading', { name: 'Le tue ricette' })).toBeInTheDocument();
+    stop();
+  });
+
+  it('opens a recipe saved before times were kept, with a plan that starts now', async () => {
     const user = userEvent.setup();
     let stop = await loadPage(storage);
     await user.click(screen.getByRole('button', { name: 'Nuovo impasto' }));
@@ -69,14 +95,22 @@ describe('dashboard', () => {
     await user.click(screen.getByRole('button', { name: 'Salva ricetta' }));
     closePage(stop);
 
+    // The shape saved before dates were kept: the four optional fields are absent.
+    const dropped = new Set(['startLocal', 'bakeLocal', 'doughTempC', 'showDryYeast']);
+    const old = JSON.parse(storage.getItem(RECIPES_KEY) as string) as {
+      data: Record<string, unknown>;
+    }[];
+    for (const recipe of old) {
+      recipe.data = Object.fromEntries(
+        Object.entries(recipe.data).filter(([k]) => !dropped.has(k)),
+      );
+    }
+    storage.setItem(RECIPES_KEY, JSON.stringify(old));
+
     stop = await loadPage(storage);
-    expect(screen.getByRole('heading', { name: 'Napoletana classica' })).toBeVisible();
-    await user.click(screen.getByRole('button', { name: 'Usa questa ricetta' }));
-    expect(screen.getByRole('button', { name: /4\. Tempo/ })).toHaveAttribute(
-      'aria-current',
-      'step',
-    );
-    expect(screen.getByText('3 di 4 passaggi confermati')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Vedi ricetta' }));
+    expect(screen.getByText(/salvata senza orari/)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Tabella di marcia' })).toBeInTheDocument();
     stop();
   });
 
@@ -120,17 +154,32 @@ describe('dashboard', () => {
     stop();
   });
 
-  it('duplicates a recipe as an independent copy', async () => {
+  it('duplicates a recipe into a prefilled calculation with fresh dates, asking first', async () => {
     const user = userEvent.setup();
     const stop = await loadPage(storage);
+    const { wizardStore } = await import('./state/store');
     await user.click(screen.getByRole('button', { name: 'Nuovo impasto' }));
     for (let step = 1; step <= 4; step++) await user.click(confirmButton());
+    wizardStore.setState((s) => ({
+      ...s,
+      startLocal: '2026-11-20T15:30',
+      bakeLocal: '2026-11-21T19:30',
+    }));
     await user.click(screen.getByRole('button', { name: 'Salva ricetta' }));
     await user.click(screen.getByRole('button', { name: 'Ricette' }));
 
     await user.click(screen.getByRole('button', { name: 'Duplica' }));
-    expect(screen.getAllByRole('heading', { name: /^Napoletana classica/ })).toHaveLength(2);
-    expect(screen.getByRole('heading', { name: /\(copia\)/ })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Annulla' }));
+    expect(screen.getByRole('heading', { name: 'Le tue ricette' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Duplica' }));
+    await user.click(screen.getByRole('button', { name: 'Cancella e duplica' }));
+    expect(screen.getByRole('button', { name: /4\. Tempo/ })).toHaveAttribute(
+      'aria-current',
+      'step',
+    );
+    expect(screen.getByText('3 di 4 passaggi confermati')).toBeInTheDocument();
+    expect(wizardStore.getState().startLocal).not.toBe('2026-11-20T15:30');
     stop();
   });
 
