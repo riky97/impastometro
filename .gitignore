@@ -1,0 +1,10 @@
+node_modules
+dist
+*.local
+
+# Tool working folders and local screenshots
+.impeccable
+.playwright-mcp
+.claude
+.agents
+skills-lock.json

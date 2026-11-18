@@ -1,0 +1,139 @@
+@import 'tailwindcss';
+
+/* Design tokens. Basil green is the only brand colour; everything else is a tinted neutral. */
+@theme {
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI Variable', 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+
+  --color-ground: #f4f6f4;
+  --color-surface: #ffffff;
+  --color-line: #dce3dd;
+  --color-line-strong: #bcc7be;
+  --color-ink: #16201a;
+  --color-ink-2: #3f4c43;
+  --color-ink-3: #56635a;
+
+  --color-brand-50: #eef5f0;
+  --color-brand-100: #dcebe1;
+  --color-brand-600: #2a7049;
+  --color-brand-700: #1f5a3a;
+  --color-brand-800: #174a2e;
+  --color-brand-900: #123a25;
+
+  --color-warn-bg: #fdf1d3;
+  --color-warn-ink: #6b4300;
+  --color-bad: #b3261e;
+  --color-bad-bg: #fbe5e2;
+  --color-bad-ink: #8f1d15;
+
+  /* Timeline series: warm phases in greens/sand, cold phase in a cool slate. */
+  --color-series-work: #174a2e;
+  --color-series-rest: #4f8a66;
+  --color-series-cold: #4d7a99;
+  --color-series-warm: #c28a2c;
+
+  --radius-control: 0.75rem;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scrollbar-color: var(--color-line-strong) transparent;
+  }
+  body {
+    background: var(--color-ground);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    caret-color: var(--color-brand-700);
+  }
+  ::selection {
+    background: var(--color-brand-100);
+    color: var(--color-brand-900);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-brand-700);
+    outline-offset: 2px;
+  }
+  input,
+  select,
+  button {
+    font: inherit;
+  }
+  input[type='radio'],
+  input[type='checkbox'] {
+    accent-color: var(--color-brand-700);
+  }
+  /* Number inputs: no spinners, they are fiddly with a thumb. */
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type='number'] {
+    -moz-appearance: textfield;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Range slider drawn from the palette; the track fill follows --fill (set inline). */
+  input[type='range'] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    height: 2.75rem;
+    cursor: pointer;
+  }
+  input[type='range']::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 999px;
+    background: linear-gradient(
+      to right,
+      var(--color-brand-700) var(--fill, 0%),
+      var(--color-line) var(--fill, 0%)
+    );
+  }
+  input[type='range']::-moz-range-track {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--color-line);
+  }
+  input[type='range']::-moz-range-progress {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--color-brand-700);
+  }
+  input[type='range']::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 28px;
+    width: 28px;
+    margin-top: -11px;
+    border-radius: 999px;
+    background: var(--color-surface);
+    border: 2px solid var(--color-brand-700);
+    box-shadow: 0 1px 3px rgb(22 32 26 / 0.25);
+  }
+  input[type='range']::-moz-range-thumb {
+    height: 24px;
+    width: 24px;
+    border-radius: 999px;
+    background: var(--color-surface);
+    border: 2px solid var(--color-brand-700);
+    box-shadow: 0 1px 3px rgb(22 32 26 / 0.25);
+  }
+  input[type='range']:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
