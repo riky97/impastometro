@@ -1,9 +1,9 @@
 import type { ContainerId } from '../data/containers';
 import type { MethodId } from '../data/methods';
 import type { OvenId } from '../data/ovens';
-import type { PizzaId } from '../data/profiles';
+import type { ProductId, RouteId } from '../data/profiles';
 
-export type Route = 'fridge' | 'no-fridge';
+export type Route = RouteId;
 export type SplitMode = 'keep-weight' | 'equal';
 
 export type QuantityInput =
@@ -12,7 +12,7 @@ export type QuantityInput =
 
 /** Everything the user decides. The store holds exactly this (plus wizard bookkeeping). */
 export interface CalcInput {
-  pizzaId: PizzaId;
+  pizzaId: ProductId;
   method: MethodId;
   container: ContainerId;
   ovenId: OvenId;

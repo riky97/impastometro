@@ -1,10 +1,20 @@
 import { useState, type ReactNode } from 'react';
-import type { PizzaId } from '../data/profiles';
-import { ClassicaIcon, ContemporaneaIcon } from './icons';
+import type { ProductId } from '../data/profiles';
+import { UNIT_LABELS, unitName } from '../data/messages.it';
+import { ClassicaIcon, ContemporaneaIcon, LoafIcon, ReccoIcon, TrayIcon } from './icons';
 import { btnPrimary, inputClass } from './ui';
 
+const ICONS: Record<ProductId, () => ReactNode> = {
+  classica: () => <ClassicaIcon />,
+  contemporanea: () => <ContemporaneaIcon />,
+  genovese: () => <TrayIcon />,
+  recco: () => <ReccoIcon />,
+  pane: () => <LoafIcon />,
+};
+
 export interface RecipeSummary {
-  pizzaId: PizzaId;
+  pizzaId: ProductId;
+  unit: keyof typeof UNIT_LABELS;
   pizza: string;
   /** One line on the pizza style, from the profile. */
   character: string;
@@ -64,7 +74,7 @@ export function RecipeCard({
     >
       <div className="flex items-center gap-3">
         <span className="grid size-11 shrink-0 place-items-center rounded-control bg-brand-50 text-brand-700">
-          {summary.pizzaId === 'classica' ? <ClassicaIcon /> : <ContemporaneaIcon />}
+          {ICONS[summary.pizzaId]()}
         </span>
         <div className="min-w-0 grow">
           {draft === null ? (
@@ -96,7 +106,7 @@ export function RecipeCard({
       <p className="mt-4 text-3xl font-semibold tracking-tight tabular-nums text-ink">
         {summary.balls}
         <span className="ml-2 text-base font-medium text-ink-2">
-          panetti da {summary.ballWeightG} g
+          {unitName(summary.unit, summary.balls)} da {summary.ballWeightG} g
         </span>
       </p>
       <p className="mt-1.5 text-sm text-ink-2">{summary.character}</p>

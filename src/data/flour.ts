@@ -6,6 +6,6 @@ export const DEFAULT_W = { min: 280, max: 320 } as const;
 /** Hydration cap from flour strength: base + perW * W. */
 export const W_CAP = { base: 50, perW: 0.06 } as const; // ASSUMPTION
 
-export const OIL_LIMITS = { minPct: 0, maxPct: 3 } as const;
+export const OIL_LIMITS = { minPct: 0, maxPct: 12 } as const;
 export const DEFAULT_FLOUR_TEMP_C = 23;
 export const DEFAULT_AMBIENT_TEMP_C = 23;

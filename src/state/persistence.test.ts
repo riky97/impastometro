@@ -189,3 +189,22 @@ describe('unavailable storage', () => {
     expect(() => vi.advanceTimersByTime(1000)).not.toThrow();
   });
 });
+
+describe('products beyond pizza', () => {
+  it('restores a saved calculation for every product', () => {
+    for (const pizzaId of ['classica', 'contemporanea', 'genovese', 'recco', 'pane'] as const) {
+      const state = { ...createDefaultState(NOW), pizzaId };
+      expect(parsePayload(JSON.stringify(state))?.pizzaId).toBe(pizzaId);
+    }
+  });
+
+  it('still reads a payload saved before the new products existed', () => {
+    const old = JSON.stringify({ ...createDefaultState(NOW), pizzaId: 'contemporanea' });
+    expect(parsePayload(old)?.pizzaId).toBe('contemporanea');
+  });
+
+  it('refuses an unknown product', () => {
+    const state = { ...createDefaultState(NOW), pizzaId: 'ciabatta' };
+    expect(parsePayload(JSON.stringify(state))).toBeNull();
+  });
+});

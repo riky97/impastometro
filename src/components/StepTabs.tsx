@@ -4,7 +4,7 @@ import { CheckIcon } from './icons';
 
 /** Full label for screen readers and wide screens; short label on phones. */
 const TAB_LABELS: Record<Step, { full: string; short: string }> = {
-  1: { full: 'Pizza e strumenti', short: 'Pizza' },
+  1: { full: 'Prodotto e strumenti', short: 'Prodotto' },
   2: { full: 'Farina', short: 'Farina' },
   3: { full: 'Quantità', short: 'Quantità' },
   4: { full: 'Tempo', short: 'Tempo' },

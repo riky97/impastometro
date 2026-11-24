@@ -1,7 +1,8 @@
-import { formatLocalDateTime, addMinutes } from '../engine/dates';
+import { addMinutes, formatLocalDateTime, parseLocalDateTime } from '../engine/dates';
 import { DEFAULT_AMBIENT_TEMP_C, DEFAULT_FLOUR_TEMP_C, DEFAULT_W } from '../data/flour';
 import { TIMING } from '../data/fermentation';
 import { DEFAULT_OVEN } from '../data/ovens';
+import { PROFILES, type ProductId } from '../data/profiles';
 import { QUANTITY_LIMITS } from '../data/quantity';
 import { SCHEMA_VERSION, type WizardState } from './schema';
 
@@ -35,4 +36,12 @@ export function createDefaultState(nowMs: number): WizardState {
     doughTempC: null,
     showDryYeast: false,
   };
+}
+
+/** The bake time a product proposes for a given start; null when the start is not a valid date. */
+export function defaultBakeLocal(startLocal: string, productId: ProductId): string | null {
+  const startMs = parseLocalDateTime(startLocal);
+  return startMs === null
+    ? null
+    : formatLocalDateTime(addMinutes(startMs, PROFILES[productId].timing.defaultTotalMin));
 }

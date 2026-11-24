@@ -1,6 +1,6 @@
 import { OIL_LIMITS, W_CAP } from '../data/flour';
 import { METHODS, type MethodId } from '../data/methods';
-import type { PizzaProfile } from '../data/profiles';
+import type { ProductProfile } from '../data/profiles';
 
 export interface HydrationBounds {
   min: number;
@@ -12,7 +12,7 @@ export const midW = (wMin: number, wMax: number): number => (wMin + wMax) / 2;
 
 /** Hydration range = min(profile max, method cap, W cap); the minimum shrinks if the cap is lower. */
 export function hydrationBounds(
-  profile: PizzaProfile,
+  profile: ProductProfile,
   method: MethodId,
   wMid: number,
 ): HydrationBounds {
@@ -33,6 +33,6 @@ export function clamp(value: number, min: number, max: number): number {
 /** Grams of water to weigh per 1 kg of flour. */
 export const waterPerKgG = (hydrationPct: number): number => hydrationPct * 10;
 
-export function oilBounds(profile: PizzaProfile): { min: number; max: number } {
+export function oilBounds(profile: ProductProfile): { min: number; max: number } {
   return { min: OIL_LIMITS.minPct, max: Math.min(OIL_LIMITS.maxPct, profile.oil.maxPct) };
 }

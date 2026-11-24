@@ -1,4 +1,3 @@
-import { PHASE_TITLES } from '../data/procedures.it';
 import { formatClock, formatDay, formatDuration } from '../engine/dates';
 import type { Phase, PhaseId } from '../engine/types';
 
@@ -13,12 +12,18 @@ const SERIES: Partial<Record<PhaseId, string>> = {
 };
 
 /** Horizontal bar: one segment per timed phase, widths proportional to the durations. */
-export function TimelineBar({ phases }: { phases: readonly Phase[] }) {
+export function TimelineBar({
+  phases,
+  titles,
+}: {
+  phases: readonly Phase[];
+  titles: Record<PhaseId, string>;
+}) {
   const spans = phases.filter((p) => p.kind === 'span' && p.durationMin > 0);
   return (
     <div
       role="img"
-      aria-label={`Tabella di marcia: ${spans.map((p) => `${PHASE_TITLES[p.id]} ${formatDuration(p.durationMin)}`).join(', ')}`}
+      aria-label={`Tabella di marcia: ${spans.map((p) => `${titles[p.id]} ${formatDuration(p.durationMin)}`).join(', ')}`}
       className="flex h-3 w-full gap-0.5 overflow-hidden rounded-full"
     >
       {spans.map((p) => (
@@ -26,7 +31,7 @@ export function TimelineBar({ phases }: { phases: readonly Phase[] }) {
           key={p.id}
           className={`${SERIES[p.id] ?? 'bg-line-strong'} min-w-1.5`}
           style={{ flexGrow: p.durationMin, flexBasis: 0 }}
-          title={`${PHASE_TITLES[p.id]}: ${formatDuration(p.durationMin)}`}
+          title={`${titles[p.id]}: ${formatDuration(p.durationMin)}`}
         />
       ))}
     </div>
@@ -37,9 +42,11 @@ export function TimelineBar({ phases }: { phases: readonly Phase[] }) {
 export function PhaseList({
   phases,
   numbers,
+  titles,
 }: {
   phases: readonly Phase[];
   numbers: ReadonlyMap<PhaseId, number>;
+  titles: Record<PhaseId, string>;
 }) {
   return (
     <ol className="divide-y divide-line">
@@ -52,8 +59,7 @@ export function PhaseList({
             }`}
           />
           <span className="min-w-0 grow font-medium text-ink">
-            <span className="tabular-nums text-ink-3">{numbers.get(p.id)}.</span>{' '}
-            {PHASE_TITLES[p.id]}
+            <span className="tabular-nums text-ink-3">{numbers.get(p.id)}.</span> {titles[p.id]}
           </span>
           <span className="shrink-0 text-right text-sm leading-snug tabular-nums text-ink-2">
             <span className="block font-semibold text-ink">

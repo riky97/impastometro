@@ -3,6 +3,8 @@ import { IngredientList } from './IngredientList';
 import { NumberField } from './NumberField';
 import { PhaseStepper } from './PhaseStepper';
 import { PhaseList, TimelineBar } from './Timeline';
+import { phaseTitles } from '../data/procedures.it';
+import { PROFILES } from '../data/profiles';
 import { cardClass, sectionTitle } from './ui';
 import type { CalcResult } from '../engine/calculate';
 import { formatDuration } from '../engine/dates';
@@ -33,6 +35,7 @@ interface Props {
 /** The final page: summary, ingredients, timeline and procedure. Knows nothing about the stores. */
 export function ResultView({ state, result, onToggleYeast, onDoughTemp, footer }: Props) {
   const { schedule, ingredients } = result;
+  const titles = phaseTitles(PROFILES[state.pizzaId], result.route);
   const numbers = new Map<PhaseId, number>(result.procedure.map((p, i) => [p.id, i + 1]));
 
   // Phone: summary, ingredients, timeline, procedure, then the optional re-plan card. Desktop: two
@@ -77,9 +80,9 @@ export function ResultView({ state, result, onToggleYeast, onDoughTemp, footer }
           <h2 id="timeline-title" className={`${sectionTitle} mb-4 text-lg`}>
             Tabella di marcia
           </h2>
-          <TimelineBar phases={schedule.phases} />
+          <TimelineBar phases={schedule.phases} titles={titles} />
           <div className="mt-2">
-            <PhaseList phases={schedule.phases} numbers={numbers} />
+            <PhaseList phases={schedule.phases} numbers={numbers} titles={titles} />
           </div>
         </section>
 

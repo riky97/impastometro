@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { CONTAINER_IDS } from '../data/containers';
 import { METHOD_IDS } from '../data/methods';
 import { OVEN_IDS } from '../data/ovens';
-import { PIZZA_IDS } from '../data/profiles';
+import { PRODUCT_IDS } from '../data/profiles';
 
 /** Single source of truth for the wizard state (and, in Phase 3, for what gets persisted). */
 export const SCHEMA_VERSION = 1;
@@ -16,7 +16,8 @@ export const wizardSchema = z.object({
   confirmed: z.tuple([z.boolean(), z.boolean(), z.boolean(), z.boolean()]),
   showResult: z.boolean(),
   // Step 1
-  pizzaId: z.enum(PIZZA_IDS),
+  // Historical name: holds any product id (pizza, focaccia, pane).
+  pizzaId: z.enum(PRODUCT_IDS),
   method: z.enum(METHOD_IDS),
   container: z.enum(CONTAINER_IDS),
   ovenId: z.enum(OVEN_IDS),

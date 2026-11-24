@@ -8,7 +8,7 @@ export default defineConfig({
   // Relative asset paths: the site is served from a sub-path on GitHub Pages.
   base: './',
   plugins: [react(), tailwindcss()],
-  resolve: { alias: { '@': path.resolve(__dirname, './src') } },
+  resolve: { alias: { '@': path.resolve(import.meta.dirname, './src') } },
   test: {
     environment: 'node',
     globalSetup: ['./tests/global-setup.ts'],

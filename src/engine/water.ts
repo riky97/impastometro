@@ -1,14 +1,14 @@
 import { WATER_TEMP_LIMITS } from '../data/fermentation';
 import { METHODS, type MethodId } from '../data/methods';
-import type { PizzaProfile } from '../data/profiles';
+import type { ProductProfile } from '../data/profiles';
 import { clamp } from './hydration';
 
-export const targetDoughTempC = (profile: PizzaProfile): number =>
+export const targetDoughTempC = (profile: ProductProfile): number =>
   (profile.targetDoughTempC.min + profile.targetDoughTempC.max) / 2;
 
 /** Desired-dough-temperature formula: 3 * target - flour - ambient - friction, clamped. */
 export function waterTempC(
-  profile: PizzaProfile,
+  profile: ProductProfile,
   method: MethodId,
   flourTempC: number,
   ambientTempC: number,

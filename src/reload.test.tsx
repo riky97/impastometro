@@ -53,7 +53,7 @@ describe('page reload', () => {
     expect(screen.getByLabelText('W minimo')).toHaveValue(300);
     expect(screen.getByText('1 di 4 passaggi confermati')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /Pizza e strumenti/ }));
+    await user.click(screen.getByRole('button', { name: /Prodotto e strumenti/ }));
     expect(screen.getByRole('radio', { name: /Napoletana contemporanea/ })).toBeChecked();
     expect(screen.getByRole('radio', { name: /Forno a legna/ })).toBeChecked();
   });

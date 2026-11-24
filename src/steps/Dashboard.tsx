@@ -19,6 +19,7 @@ function summarize(inputs: WizardState): RecipeSummary {
   const result = calculate(toCalcInput(inputs));
   return {
     pizzaId: inputs.pizzaId,
+    unit: result.unit,
     pizza: PROFILES[inputs.pizzaId].label,
     character: PROFILES[inputs.pizzaId].description,
     balls: result.balls.count,

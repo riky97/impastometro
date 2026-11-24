@@ -4,6 +4,7 @@ import { NumberField } from '../components/NumberField';
 import { StepFooter } from '../components/StepFooter';
 import { errorClass } from '../components/ui';
 import type { CalcResult } from '../engine/calculate';
+import { PROFILES } from '../data/profiles';
 import { formatDuration } from '../engine/dates';
 import type { WizardState } from '../state/schema';
 import { actions } from '../state/store';
@@ -15,6 +16,7 @@ export function StepTime({ state, result }: { state: WizardState; result: CalcRe
     if (patch.startLocal !== undefined || patch.bakeLocal !== undefined) setStaleDates(false);
     actions.edit(4, patch);
   };
+  const profile = PROFILES[state.pizzaId];
   const issues = result.issues.filter((i) => i.field === 'time');
   const timeError = messageFor(issues, [
     'invalid-date',
@@ -48,29 +50,33 @@ export function StepTime({ state, result }: { state: WizardState; result: CalcRe
         )}
       </div>
 
-      <ChoiceGroup
-        legend="Percorso"
-        name="route"
-        value={state.route}
-        choices={[
-          { value: 'fridge', label: 'Con frigorifero' },
-          { value: 'no-fridge', label: 'Senza frigorifero' },
-        ]}
-        onChange={(route) => edit({ route })}
-      />
+      {profile.routes.length > 1 && (
+        <ChoiceGroup
+          legend="Percorso"
+          name="route"
+          value={state.route}
+          choices={[
+            { value: 'fridge', label: 'Con frigorifero' },
+            { value: 'no-fridge', label: 'Senza frigorifero' },
+          ]}
+          onChange={(route) => edit({ route })}
+        />
+      )}
 
-      <NumberField
-        id="ambient-temp"
-        label="Temperatura ambiente"
-        unit="°C"
-        value={state.ambientTempC}
-        onChange={(ambientTempC) => edit({ ambientTempC })}
-      />
+      {profile.leavened && (
+        <NumberField
+          id="ambient-temp"
+          label="Temperatura ambiente"
+          unit="°C"
+          value={state.ambientTempC}
+          onChange={(ambientTempC) => edit({ ambientTempC })}
+        />
+      )}
 
       {issues.length === 0 && (
         <p className="rounded-control bg-brand-50 p-3.5 text-sm text-ink" aria-live="polite">
           Tempo totale: <strong>{formatDuration(result.schedule.totalMin)}</strong>
-          {state.route === 'fridge' && (
+          {result.route === 'fridge' && (
             <>, di cui {formatDuration(result.schedule.fridgeMin)} in frigorifero</>
           )}
           .

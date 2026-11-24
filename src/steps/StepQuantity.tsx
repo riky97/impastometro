@@ -5,6 +5,7 @@ import { MinusIcon, PlusIcon } from '../components/icons';
 import { StepFooter } from '../components/StepFooter';
 import { btnSecondary } from '../components/ui';
 import { QUANTITY_LIMITS } from '../data/quantity';
+import { UNIT_LABELS, unitName } from '../data/messages.it';
 import { PROFILES } from '../data/profiles';
 import type { CalcResult } from '../engine/calculate';
 import type { WizardState } from '../state/schema';
@@ -15,7 +16,9 @@ const stepperButton = `${btnSecondary} size-12 shrink-0 px-0`;
 
 export function StepQuantity({ state, result }: { state: WizardState; result: CalcResult }) {
   const edit = (patch: Parameters<typeof actions.edit>[1]) => actions.edit(3, patch);
-  const ballWeight = state.ballWeightG ?? PROFILES[state.pizzaId].ballG.default;
+  const { unit, ballG } = PROFILES[state.pizzaId];
+  const labels = UNIT_LABELS[unit.kind];
+  const ballWeight = state.ballWeightG ?? ballG.default;
   const issues = result.issues.filter((i) => i.field === 'quantity');
   const { ingredients, balls } = result;
 
@@ -26,7 +29,7 @@ export function StepQuantity({ state, result }: { state: WizardState; result: Ca
         name="quantity-mode"
         value={state.quantityMode}
         choices={[
-          { value: 'balls', label: 'Numero di panetti' },
+          { value: 'balls', label: labels.count },
           { value: 'flour', label: 'Kg di farina' },
         ]}
         onChange={(quantityMode) => edit({ quantityMode })}
@@ -35,7 +38,7 @@ export function StepQuantity({ state, result }: { state: WizardState; result: Ca
       {state.quantityMode === 'balls' ? (
         <NumberField
           id="balls"
-          label="Numero di panetti"
+          label={labels.count}
           value={state.balls}
           step={1}
           onChange={(balls) => edit({ balls: Math.round(balls) })}
@@ -43,9 +46,9 @@ export function StepQuantity({ state, result }: { state: WizardState; result: Ca
           startSlot={
             <button
               type="button"
-              aria-label="Un panetto in meno"
+              aria-label={labels.less}
               className={stepperButton}
-              onClick={() => edit({ balls: Math.max(QUANTITY_LIMITS.balls.min, state.balls - 1) })}
+              onClick={() => edit({ balls: Math.max(unit.count.min, state.balls - 1) })}
             >
               <MinusIcon className="size-5" />
             </button>
@@ -53,9 +56,9 @@ export function StepQuantity({ state, result }: { state: WizardState; result: Ca
           endSlot={
             <button
               type="button"
-              aria-label="Un panetto in più"
+              aria-label={labels.more}
               className={stepperButton}
-              onClick={() => edit({ balls: Math.min(QUANTITY_LIMITS.balls.max, state.balls + 1) })}
+              onClick={() => edit({ balls: Math.min(unit.count.max, state.balls + 1) })}
             >
               <PlusIcon className="size-5" />
             </button>
@@ -76,13 +79,18 @@ export function StepQuantity({ state, result }: { state: WizardState; result: Ca
 
       <RangeField
         id="ball-weight"
-        label="Peso del panetto"
+        label={labels.weight}
         value={ballWeight}
-        min={QUANTITY_LIMITS.ballG.min}
-        max={QUANTITY_LIMITS.ballG.max}
+        min={unit.limitsG.min}
+        max={unit.limitsG.max}
         step={5}
         unit=" g"
         onChange={(ballWeightG) => edit({ ballWeightG })}
+        hint={
+          unit.kind === 'tray'
+            ? 'Circa 0,5 g di impasto per cm²: 600 g per una teglia 30×40.'
+            : undefined
+        }
       />
 
       {state.quantityMode === 'flour' && (
@@ -93,15 +101,16 @@ export function StepQuantity({ state, result }: { state: WizardState; result: Ca
           stacked
           choices={[
             { value: 'keep-weight', label: 'Mantieni il peso scelto' },
-            { value: 'equal', label: 'Tutto in panetti uguali' },
+            { value: 'equal', label: labels.equal },
           ]}
           onChange={(split) => edit({ split })}
         />
       )}
 
       <p className="rounded-control bg-brand-50 p-3.5 text-sm text-ink" aria-live="polite">
-        Impasto totale: <strong>{ingredients.totalG} g</strong> = {balls.count} panetti da{' '}
-        {balls.weightG} g{balls.leftoverG > 0 && <> + {balls.leftoverG} g di impasto avanzato</>}.
+        Impasto totale: <strong>{ingredients.totalG} g</strong> = {balls.count}{' '}
+        {unitName(unit.kind, balls.count)} da {balls.weightG} g
+        {balls.leftoverG > 0 && <> + {balls.leftoverG} g di impasto avanzato</>}.
       </p>
 
       <StepFooter step={3} disabled={issues.length > 0} />

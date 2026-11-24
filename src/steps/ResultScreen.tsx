@@ -14,7 +14,7 @@ export function ResultScreen({ state, result }: { state: WizardState; result: Ca
       state={state}
       result={result}
       onToggleYeast={actions.setShowDryYeast}
-      onDoughTemp={actions.setDoughTemp}
+      onDoughTemp={result.leavened ? actions.setDoughTemp : undefined}
       footer={
         <>
           <button

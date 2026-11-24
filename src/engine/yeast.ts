@@ -5,9 +5,9 @@ import { clamp } from './hydration';
 export const effectiveHours = (ambientH: number, fridgeH: number): number =>
   ambientH + fridgeH * YEAST.fridgeWeight;
 
-/** Fresh brewer's yeast as % of flour. */
-export function yeastPct(effHours: number): number {
-  return clamp(YEAST.k / Math.max(effHours, 0.5), YEAST.minPct, YEAST.maxPct);
+/** Fresh brewer's yeast as % of flour. `factor` is the product's multiplier (1 for pizza). */
+export function yeastPct(effHours: number, factor = 1): number {
+  return clamp((factor * YEAST.k) / Math.max(effHours, 0.5), YEAST.minPct, YEAST.maxPct);
 }
 
 /** Grams for the batch: 0.1 g resolution, 0.01 g below the dilution threshold. */
@@ -19,4 +19,4 @@ export function freshYeastG(flourG: number, pct: number): number {
 export const dryYeastG = (freshG: number): number =>
   Math.round(freshG * YEAST.dryRatio * 100) / 100;
 
-export const needsDilution = (freshG: number): boolean => freshG < YEAST.diluteBelowG;
+export const needsDilution = (freshG: number): boolean => freshG > 0 && freshG < YEAST.diluteBelowG;

@@ -1,6 +1,6 @@
 # Impastometro
 
-Personal, single-user pizza dough calculator (wizard UI). Client-only static site: no backend, no
+Personal, single-user dough calculator (wizard UI): pizza, focaccia genovese, focaccia di Recco, pane. Client-only static site: no backend, no
 accounts, no paywall, no analytics. Everything the user enters must persist across reloads.
 
 ## Language
@@ -17,7 +17,9 @@ Do not add runtime dependencies without asking.
 ## Layout
 
 - `src/engine` — pure, UI-free calculation. No React, no DOM, no `Date.now()`, no storage.
-- `src/data` — typed config: every tunable number lives here. Mark reconstructed numbers with
+- `src/data` — typed config: every tunable number lives here. Each product (`profiles.ts`) carries its
+  own timing, yeast factor, oil cap, unit (ball, tray, loaf) and extras; the persisted key `pizzaId`
+  keeps its historical name but holds any product id. Mark reconstructed numbers with
   `// ASSUMPTION`. Italian copy lives in `*.it.ts` files.
 - `src/state` — store, zod schema and persistence. `persistence.ts` is the only code that touches
   storage (key `impastometro:state:v1`, debounced 300 ms, flushed on `pagehide`); `session.ts`

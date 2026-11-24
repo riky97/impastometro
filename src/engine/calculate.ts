@@ -1,7 +1,7 @@
 import { WATER_STAGES } from '../data/fermentation';
 import { METHODS } from '../data/methods';
 import { findModel } from '../data/oven-models';
-import { PROFILES } from '../data/profiles';
+import { PROFILES, type ExtraId } from '../data/profiles';
 import { buildProcedure, type PhaseProcedure } from '../data/procedures.it';
 import {
   clamp,
@@ -14,7 +14,7 @@ import {
 import { computeIngredients, splitBalls, type BallSplit, type Ingredients } from './quantities';
 import { buildSchedule } from './schedule';
 import { pizzaOvenSuitability, wSuitability } from './suitability';
-import type { CalcInput, Schedule, Suitability, ValidationIssue } from './types';
+import type { CalcInput, Route, Schedule, Suitability, ValidationIssue } from './types';
 import { validateInputs, validateTime } from './validation';
 import { targetDoughTempC, waterTempC } from './water';
 
@@ -26,7 +26,15 @@ export interface CalcResult {
   oilPct: number;
   waterTempC: number;
   targetDoughTempC: { min: number; max: number };
+  /** False for Recco: no yeast row, no fermentation. */
+  leavened: boolean;
+  /** What one piece is: a ball, a tray or a loaf. */
+  unit: 'ball' | 'tray' | 'loaf';
+  /** The route actually planned: a product that has no fridge route always gets the direct one. */
+  route: Route;
   ingredients: Ingredients;
+  /** Brine, pan oil, cheese...: grams for the whole batch. */
+  extras: { id: ExtraId; g: number }[];
   balls: BallSplit;
   schedule: Schedule;
   procedure: PhaseProcedure[];
@@ -46,13 +54,22 @@ export function calculate(input: CalcInput): CalcResult {
   const saltPct = profile.saltPct;
   const target = targetDoughTempC(profile);
 
+  const route: Route = profile.routes.includes(input.route)
+    ? input.route
+    : (profile.routes[0] ?? 'no-fridge');
+  const product = {
+    timing: profile.timing,
+    yeastFactor: profile.yeastFactor,
+    leavened: profile.leavened,
+  };
   const planned = buildSchedule({
     startMs: input.startMs,
     bakeMs: input.bakeMs,
-    route: input.route,
+    route,
     ambientTempC: input.ambientTempC,
     mixingMin: method.mixingMin,
     targetDoughTempC: target,
+    ...product,
   });
   // A measured dough temperature re-plans the schedule, with the yeast already weighed.
   const schedule =
@@ -61,12 +78,13 @@ export function calculate(input: CalcInput): CalcResult {
       : buildSchedule({
           startMs: input.startMs,
           bakeMs: input.bakeMs,
-          route: input.route,
+          route,
           ambientTempC: input.ambientTempC,
           mixingMin: method.mixingMin,
           targetDoughTempC: target,
           doughTempC: input.doughTempC,
           fixedYeastPct: planned.yeastPct,
+          ...product,
         });
 
   const ingredients = computeIngredients(input.quantity, {
@@ -76,6 +94,11 @@ export function calculate(input: CalcInput): CalcResult {
     yeastPct: planned.yeastPct,
   });
   const balls = splitBalls(input.quantity, ingredients.totalG);
+  const batchDoughG = balls.count * balls.weightG;
+  const extras = profile.extras.map((e) => ({
+    id: e.id,
+    g: Math.round(e.perDoughG * batchDoughG),
+  }));
   const water = waterTempC(profile, input.method, input.flourTempC, input.ambientTempC);
   const waterStages =
     input.method === 'mano'
@@ -86,7 +109,10 @@ export function calculate(input: CalcInput): CalcResult {
           ? 2
           : 1;
 
-  const issues = [...validateInputs(input), ...validateTime(input, schedule, method.mixingMin)];
+  const issues = [
+    ...validateInputs(input),
+    ...validateTime({ ...input, route }, schedule, method.mixingMin),
+  ];
 
   return {
     valid: issues.length === 0,
@@ -96,7 +122,11 @@ export function calculate(input: CalcInput): CalcResult {
     oilPct,
     waterTempC: water,
     targetDoughTempC: profile.targetDoughTempC,
+    leavened: profile.leavened,
+    unit: profile.unit.kind,
+    route,
     ingredients,
+    extras,
     balls,
     schedule,
     procedure: buildProcedure({
@@ -105,7 +135,7 @@ export function calculate(input: CalcInput): CalcResult {
       container: input.container,
       oven: input.ovenId,
       model: findModel(input.ovenId, input.ovenModelId),
-      route: input.route,
+      route,
       waterStages,
       waterTempC: water,
       ballCount: balls.count,

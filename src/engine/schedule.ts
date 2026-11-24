@@ -1,9 +1,5 @@
-import {
-  BENCH_RISE,
-  OUT_OF_FRIDGE_REDUCTION,
-  OUT_OF_FRIDGE_TABLE,
-  TIMING,
-} from '../data/fermentation';
+import { BENCH_RISE, OUT_OF_FRIDGE_REDUCTION, OUT_OF_FRIDGE_TABLE } from '../data/fermentation';
+import { PROFILES, type Timing } from '../data/profiles';
 import { MS_PER_MIN, addMinutes } from './dates';
 import type { Phase, Route, Schedule } from './types';
 import { effectiveHours, yeastPct } from './yeast';
@@ -20,7 +16,15 @@ export interface ScheduleInput {
   doughTempC?: number | null;
   /** Yeast already weighed: keep it fixed instead of recomputing it from the schedule. */
   fixedYeastPct?: number;
+  /** The product's timing; defaults to the pizza one. */
+  timing?: Timing;
+  /** Multiplier on the yeast model (1 for pizza). */
+  yeastFactor?: number;
+  /** False for Recco: no yeast, no fermentation, just mix, rest, roll and bake. */
+  leavened?: boolean;
 }
+
+const PIZZA_TIMING = PROFILES.classica.timing;
 
 const MAX_ITERATIONS = 100;
 const EPSILON = 1e-9;
@@ -33,8 +37,10 @@ export function benchRiseMin(yeast: number, ambientTempC: number): number {
 }
 
 /** Minutes out of the fridge before baking, linearly interpolated by ambient °C. */
-export function outOfFridgeBaseMin(ambientTempC: number): number {
-  const table = OUT_OF_FRIDGE_TABLE;
+export function outOfFridgeBaseMin(
+  ambientTempC: number,
+  table: Timing['outOfFridge'] = OUT_OF_FRIDGE_TABLE,
+): number {
   const first = table[0];
   const last = table[table.length - 1];
   if (!first || !last) throw new Error('OUT_OF_FRIDGE_TABLE is empty');
@@ -51,9 +57,13 @@ export function outOfFridgeBaseMin(ambientTempC: number): number {
   return last.minutes;
 }
 
-export function outOfFridgeMin(ambientTempC: number, fridgeHours: number): number {
+export function outOfFridgeMin(
+  ambientTempC: number,
+  fridgeHours: number,
+  table: Timing['outOfFridge'] = OUT_OF_FRIDGE_TABLE,
+): number {
   const reduction = OUT_OF_FRIDGE_REDUCTION.find((r) => fridgeHours > r.afterHours);
-  return outOfFridgeBaseMin(ambientTempC) * (reduction?.factor ?? 1);
+  return outOfFridgeBaseMin(ambientTempC, table) * (reduction?.factor ?? 1);
 }
 
 const span = (id: Phase['id'], startMs: number, durationMin: number): Phase => ({
@@ -76,7 +86,17 @@ const milestone = (id: Phase['id'], startMs: number): Phase => ({
 export function buildSchedule(input: ScheduleInput): Schedule {
   const totalMin = (input.bakeMs - input.startMs) / MS_PER_MIN;
   const { mixingMin } = input;
-  const restMin = TIMING.restMin;
+  const timing = input.timing ?? PIZZA_TIMING;
+  const factor = input.yeastFactor ?? 1;
+  const unleavened = input.leavened === false;
+  const direct = unleavened || input.route === 'no-fridge';
+  // A fixed final proof (bread) pushes the slack into the bulk rest; Recco rests for all the time left
+  // except the hands-on time of rolling and filling (`toppingLeadMin`).
+  const restMin = unleavened
+    ? Math.max(0, totalMin - mixingMin - timing.toppingLeadMin)
+    : direct && timing.proofMin !== undefined
+      ? Math.max(0, totalMin - mixingMin - timing.proofMin)
+      : timing.restMin;
   const afterRestMs = addMinutes(input.startMs, mixingMin + restMin);
   const head = (): Phase[] => [
     span('mix', input.startMs, mixingMin),
@@ -84,20 +104,36 @@ export function buildSchedule(input: ScheduleInput): Schedule {
     milestone('shape', afterRestMs),
   ];
   const tail = (): Phase[] => [
-    milestone('topping', addMinutes(input.bakeMs, -TIMING.toppingLeadMin)),
+    milestone('topping', addMinutes(input.bakeMs, -timing.toppingLeadMin)),
     milestone('bake', input.bakeMs),
   ];
 
-  if (input.route === 'no-fridge') {
-    const pct = input.fixedYeastPct ?? yeastPct(totalMin / 60);
-    const riseMin = Math.max(0, totalMin - mixingMin - restMin);
+  if (unleavened) {
+    return {
+      phases: [
+        span('mix', input.startMs, mixingMin),
+        span('rest', addMinutes(input.startMs, mixingMin), restMin),
+        span('topping', afterRestMs, timing.toppingLeadMin),
+        milestone('bake', input.bakeMs),
+      ],
+      yeastPct: 0,
+      effectiveHours: 0,
+      totalMin,
+      fridgeMin: 0,
+      feasible: restMin > 0,
+    };
+  }
+
+  if (direct) {
+    const pct = input.fixedYeastPct ?? yeastPct(totalMin / 60, factor);
+    const riseMin = timing.proofMin ?? Math.max(0, totalMin - mixingMin - restMin);
     return {
       phases: [...head(), span('ambientRise', afterRestMs, riseMin), ...tail()],
       yeastPct: pct,
       effectiveHours: totalMin / 60,
       totalMin,
       fridgeMin: 0,
-      feasible: riseMin > 0,
+      feasible: timing.proofMin === undefined ? riseMin > 0 : restMin > 0,
     };
   }
 
@@ -111,11 +147,11 @@ export function buildSchedule(input: ScheduleInput): Schedule {
   let eff = 0.5;
   for (let i = 0; i < MAX_ITERATIONS; i++) {
     const rise = benchRiseMin(pct, input.ambientTempC) * doughFactor;
-    const out = outOfFridgeMin(input.ambientTempC, fridgeH);
+    const out = outOfFridgeMin(input.ambientTempC, fridgeH, timing.outOfFridge);
     const fridgeMin = Math.max(0, totalMin - mixingMin - restMin - rise - out);
     const nextFridgeH = fridgeMin / 60;
     eff = effectiveHours((totalMin - fridgeMin) / 60, nextFridgeH);
-    const nextPct = input.fixedYeastPct ?? yeastPct(eff);
+    const nextPct = input.fixedYeastPct ?? yeastPct(eff, factor);
     const done = Math.abs(nextPct - pct) < EPSILON && Math.abs(nextFridgeH - fridgeH) < EPSILON;
     pct = nextPct;
     fridgeH = nextFridgeH;
@@ -124,7 +160,7 @@ export function buildSchedule(input: ScheduleInput): Schedule {
 
   // Whole-minute phases; the fridge absorbs the rounding so the phases always sum to the total.
   const riseMin = Math.round(benchRiseMin(pct, input.ambientTempC) * doughFactor);
-  const outMin = Math.round(outOfFridgeMin(input.ambientTempC, fridgeH));
+  const outMin = Math.round(outOfFridgeMin(input.ambientTempC, fridgeH, timing.outOfFridge));
   const rawFridge = totalMin - mixingMin - restMin - riseMin - outMin;
   const fridgeMin = Math.max(0, rawFridge);
   const riseStart = afterRestMs;

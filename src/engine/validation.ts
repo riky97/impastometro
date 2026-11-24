@@ -1,5 +1,5 @@
 import { W_LIMITS } from '../data/flour';
-import { TIMING } from '../data/fermentation';
+import { PROFILES } from '../data/profiles';
 import { QUANTITY_LIMITS } from '../data/quantity';
 import type { CalcInput, Schedule, ValidationIssue } from './types';
 
@@ -13,6 +13,7 @@ const issue = (
 export function validateInputs(input: CalcInput): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
   const { wMin, wMax, quantity } = input;
+  const { unit } = PROFILES[input.pizzaId];
   if (wMin > wMax) issues.push(issue('w-min-above-max', 'flour'));
   if (wMin < W_LIMITS.min || wMax > W_LIMITS.max) {
     issues.push(issue('w-out-of-range', 'flour', { min: W_LIMITS.min, max: W_LIMITS.max }));
@@ -23,12 +24,12 @@ export function validateInputs(input: CalcInput): ValidationIssue[] {
       issues.push(issue('flour-out-of-range', 'quantity', { min, max }));
     }
   } else {
-    const { min, max } = QUANTITY_LIMITS.balls;
+    const { min, max } = unit.count;
     if (!Number.isInteger(quantity.balls) || quantity.balls < min || quantity.balls > max) {
       issues.push(issue('balls-out-of-range', 'quantity', { min, max }));
     }
   }
-  const { min: bMin, max: bMax } = QUANTITY_LIMITS.ballG;
+  const { min: bMin, max: bMax } = unit.limitsG;
   if (quantity.ballWeightG < bMin || quantity.ballWeightG > bMax) {
     issues.push(issue('ball-weight-out-of-range', 'quantity', { min: bMin, max: bMax }));
   }
@@ -47,14 +48,15 @@ export function validateTime(
   if (input.bakeMs <= input.startMs) return [issue('bake-before-start', 'time')];
 
   const issues: ValidationIssue[] = [];
-  const neededMin = TIMING.minTotalH * 60 + mixingMin;
+  const { timing } = PROFILES[input.pizzaId];
+  const neededMin = timing.minTotalH * 60 + mixingMin;
   if (schedule.totalMin < neededMin) {
-    issues.push(issue('total-too-short', 'time', { hours: TIMING.minTotalH, mixingMin }));
+    issues.push(issue('total-too-short', 'time', { hours: timing.minTotalH, mixingMin }));
   }
   if (input.route === 'fridge') {
     if (!schedule.feasible) issues.push(issue('fridge-infeasible', 'time'));
-    if (schedule.fridgeMin / 60 > TIMING.maxFridgeH) {
-      issues.push(issue('fridge-too-long', 'time', { hours: TIMING.maxFridgeH }));
+    if (schedule.fridgeMin / 60 > timing.maxFridgeH) {
+      issues.push(issue('fridge-too-long', 'time', { hours: timing.maxFridgeH }));
     }
   }
   return issues;

@@ -90,13 +90,15 @@ export function StepFlour({ state, result }: { state: WizardState; result: CalcR
         onChange={(oilPct) => edit({ oilPct })}
       />
 
-      <NumberField
-        id="flour-temp"
-        label="Temperatura della farina"
-        unit="°C"
-        value={state.flourTempC}
-        onChange={(flourTempC) => edit({ flourTempC })}
-      />
+      {profile.leavened && (
+        <NumberField
+          id="flour-temp"
+          label="Temperatura della farina"
+          unit="°C"
+          value={state.flourTempC}
+          onChange={(flourTempC) => edit({ flourTempC })}
+        />
+      )}
 
       <StepFooter step={2} disabled={flourIssues.length > 0} />
     </div>

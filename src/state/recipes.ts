@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { z } from 'zod';
 import { PROFILES } from '../data/profiles';
-import { createDefaultState } from './defaults';
+import { createDefaultState, defaultBakeLocal } from './defaults';
 import { wizardSchema, type WizardState } from './schema';
 import { createStore, wizardStore } from './store';
 
@@ -76,7 +76,7 @@ export const recipeActions = {
       ...fresh,
       ...recipe.data,
       startLocal: fresh.startLocal,
-      bakeLocal: fresh.bakeLocal,
+      bakeLocal: defaultBakeLocal(fresh.startLocal, recipe.data.pizzaId) ?? fresh.bakeLocal,
       doughTempC: null,
       confirmed: [true, true, true, false],
       step: 4,

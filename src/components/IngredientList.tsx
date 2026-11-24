@@ -1,3 +1,4 @@
+import { EXTRA_LABELS, unitName } from '../data/messages.it';
 import type { CalcResult } from '../engine/calculate';
 import { cardClass, sectionTitle } from './ui';
 
@@ -36,37 +37,59 @@ export function IngredientList({ result, showDryYeast, onToggleYeast }: Props) {
         Ingredienti
       </h2>
       <p className="mt-1 font-semibold tabular-nums text-ink">
-        {balls.count} panetti da {balls.weightG} g
+        {balls.count} {unitName(result.unit, balls.count)} da {balls.weightG} g
         {balls.leftoverG > 0 && <> + {balls.leftoverG} g di impasto avanzato</>}.
       </p>
       <dl className="mt-1 divide-y divide-line">
         <Row name="Farina" grams={ing.flourG} />
-        <Row name="Acqua" grams={ing.waterG} note={`a ${number.format(result.waterTempC)} °C`} />
         <Row
-          name={showDryYeast ? 'Lievito secco' : 'Lievito di birra fresco'}
-          grams={yeastG}
-          note={yeastNote}
+          name="Acqua"
+          grams={ing.waterG}
+          note={result.leavened ? `a ${number.format(result.waterTempC)} °C` : undefined}
         />
+        {result.leavened && (
+          <Row
+            name={showDryYeast ? 'Lievito secco' : 'Lievito di birra fresco'}
+            grams={yeastG}
+            note={yeastNote}
+          />
+        )}
         <Row name="Sale" grams={ing.saltG} />
         {ing.oilG > 0 && <Row name="Olio d'oliva" grams={ing.oilG} />}
       </dl>
-      <label className="mt-3 flex min-h-11 cursor-pointer items-center gap-3 text-sm text-ink-2">
-        <input
-          type="checkbox"
-          className="size-5"
-          checked={showDryYeast}
-          onChange={(e) => onToggleYeast(e.target.checked)}
-        />
-        Mostra il lievito secco (1/3 del fresco)
-      </label>
-      <p className="mt-2 border-t border-line pt-3 text-sm text-ink-2">
-        Temperatura dell'impasto dopo l'impasto:{' '}
-        <strong className="font-semibold whitespace-nowrap text-ink">
-          {target.min}–{target.max}
-          {' '}°C
-        </strong>
-        .
-      </p>
+      {result.extras.length > 0 && (
+        <>
+          <h3 className="mt-3 border-t border-line pt-3 text-sm font-medium text-ink-2">
+            Oltre all'impasto
+          </h3>
+          <dl className="divide-y divide-line">
+            {result.extras.map((e) => (
+              <Row key={e.id} name={EXTRA_LABELS[e.id]} grams={e.g} />
+            ))}
+          </dl>
+        </>
+      )}
+      {result.leavened && (
+        <label className="mt-3 flex min-h-11 cursor-pointer items-center gap-3 text-sm text-ink-2">
+          <input
+            type="checkbox"
+            className="size-5"
+            checked={showDryYeast}
+            onChange={(e) => onToggleYeast(e.target.checked)}
+          />
+          Mostra il lievito secco (1/3 del fresco)
+        </label>
+      )}
+      {result.leavened && (
+        <p className="mt-2 border-t border-line pt-3 text-sm text-ink-2">
+          Temperatura dell'impasto dopo l'impasto:{' '}
+          <strong className="font-semibold whitespace-nowrap text-ink">
+            {target.min}–{target.max}
+            {' '}°C
+          </strong>
+          .
+        </p>
+      )}
     </section>
   );
 }

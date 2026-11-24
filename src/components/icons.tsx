@@ -72,3 +72,33 @@ export function ContemporaneaIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+/** Genovese: a tray with finger dimples. */
+export function TrayIcon({ className }: IconProps) {
+  return (
+    <svg {...pizza} className={className}>
+      <rect x="3.5" y="7" width="21" height="14" rx="3" />
+      <path d="M9 12h.01M14 11h.01M19 12h.01M11.5 16.5h.01M16.5 16.5h.01" strokeWidth="2.2" />
+    </svg>
+  );
+}
+
+/** Recco: a round pan with a sealed edge. */
+export function ReccoIcon({ className }: IconProps) {
+  return (
+    <svg {...pizza} className={className}>
+      <circle cx="14" cy="14" r="10.5" />
+      <circle cx="14" cy="14" r="7" strokeDasharray="1.5 3" />
+    </svg>
+  );
+}
+
+/** Pane: a loaf with three slashes. */
+export function LoafIcon({ className }: IconProps) {
+  return (
+    <svg {...pizza} className={className}>
+      <path d="M4.5 19.5v-2.5c0-4.5 4-8 9.5-8s9.5 3.5 9.5 8v2.5Z" />
+      <path d="M10 13l1.8 3.4M14 12.2l1.8 3.4M18 13l1.8 3.4" />
+    </svg>
+  );
+}

@@ -21,7 +21,7 @@ describe('wizard', () => {
     render(<App />);
     expect(screen.getByText('0 di 4 passaggi confermati')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Farina/ })).toBeDisabled();
-    expect(screen.getByRole('button', { name: /Pizza e strumenti/ })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: /Prodotto e strumenti/ })).toHaveAttribute(
       'aria-current',
       'step',
     );
@@ -111,7 +111,7 @@ describe('wizard', () => {
     expect(oil).toBeEnabled();
     expect(oil).toHaveAttribute('max', '1');
 
-    await user.click(screen.getByRole('button', { name: /Pizza e strumenti/ }));
+    await user.click(screen.getByRole('button', { name: /Prodotto e strumenti/ }));
     await user.click(screen.getByRole('radio', { name: /Napoletana contemporanea/ }));
     await user.click(confirmButton());
     expect(screen.getByLabelText("Olio d'oliva")).toHaveAttribute('max', '2');
@@ -148,6 +148,8 @@ describe('wizard', () => {
     const user = userEvent.setup();
     render(<App />);
     await user.click(confirmButton());
-    expect(screen.getByRole('button', { name: '1. Pizza e strumenti (confermato)' })).toBeEnabled();
+    expect(
+      screen.getByRole('button', { name: '1. Prodotto e strumenti (confermato)' }),
+    ).toBeEnabled();
   });
 });
