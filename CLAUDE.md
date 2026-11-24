@@ -30,6 +30,9 @@ Do not add runtime dependencies without asking.
   dates and measured dough temperature it was saved with (optional fields, so older recipes still
   load); "Vedi ricetta" shows them read-only, "Duplica" starts a prefilled calculation with fresh dates. The app opens on the
   dashboard (`view` in `ui.ts`, not persisted); the in-progress calculation shows as a card.
+- Installable and offline: `public/manifest.webmanifest` and icons, and `vite.config.ts` emits `sw.js` (every
+  file of the build cached at install, page network-first). The worker exists only in a production build.
+  The result page keeps the screen on through the Wake Lock API (`src/state/wakeLock.ts`).
 - `src/components` — presentational components. `src/steps` — one wizard step per file.
 
 ## Engine rules

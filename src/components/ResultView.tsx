@@ -11,6 +11,7 @@ import type { CalcResult } from '../engine/calculate';
 import { formatClock, formatDay, formatDuration } from '../engine/dates';
 import type { PhaseId } from '../engine/types';
 import { useNow } from '../state/clock';
+import { useWakeLock } from '../state/wakeLock';
 import type { WizardState } from '../state/schema';
 
 function SummaryCell({ label, value, unit }: { label: string; value: string; unit?: string }) {
@@ -41,6 +42,7 @@ interface Props {
 export function ResultView({ state, result, onToggleYeast, onDoughTemp, title, actions }: Props) {
   const { schedule, ingredients } = result;
   const nowMs = useNow();
+  useWakeLock();
   const titles = phaseTitles(PROFILES[state.pizzaId], result.route);
   const numbers = new Map<PhaseId, number>(result.procedure.map((p, i) => [p.id, i + 1]));
   const bakeMs = schedule.phases[schedule.phases.length - 1]?.startMs ?? 0;
