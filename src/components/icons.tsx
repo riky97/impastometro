@@ -102,3 +102,11 @@ export function LoafIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+export function ChevronRightIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M8 5l5 5-5 5" />
+    </svg>
+  );
+}

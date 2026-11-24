@@ -19,7 +19,7 @@ const confirmButton = () => screen.getByRole('button', { name: /^Conferma/ });
 describe('wizard', () => {
   it('starts with nothing confirmed and later steps locked', () => {
     render(<App />);
-    expect(screen.getByText('0 di 4 passaggi confermati')).toBeInTheDocument();
+    expect(screen.queryAllByRole('button', { name: /\(confermato\)/ })).toHaveLength(0);
     expect(screen.getByRole('button', { name: /Farina/ })).toBeDisabled();
     expect(screen.getByRole('button', { name: /Prodotto e strumenti/ })).toHaveAttribute(
       'aria-current',
@@ -31,15 +31,16 @@ describe('wizard', () => {
     const user = userEvent.setup();
     render(<App />);
     await user.click(confirmButton());
-    expect(screen.getByText('1 di 4 passaggi confermati')).toBeInTheDocument();
+    expect(screen.queryAllByRole('button', { name: /\(confermato\)/ })).toHaveLength(1);
     expect(screen.getByRole('button', { name: /Farina/ })).toHaveAttribute('aria-current', 'step');
     expect(screen.getByRole('button', { name: /Quantità/ })).toBeDisabled();
   });
 
-  it('shows the suitability badge for the chosen oven', async () => {
+  it('tags a pizza only when the chosen oven is a poor fit', async () => {
     const user = userEvent.setup();
     render(<App />);
-    expect(screen.getAllByText('Consigliato')).toHaveLength(2);
+    expect(screen.queryByText('Consigliato')).not.toBeInTheDocument();
+    expect(screen.queryByText('Sconsigliato')).not.toBeInTheDocument();
     await user.click(screen.getByRole('radio', { name: /Forno di casa/ }));
     expect(screen.getByText('Sconsigliato')).toBeInTheDocument();
     expect(screen.getByText('Da valutare')).toBeInTheDocument();
@@ -67,7 +68,7 @@ describe('wizard', () => {
     expect(screen.getByText(/6 panetti da 280 g/)).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Modifica i dati' }));
-    expect(screen.getByText('4 di 4 passaggi confermati')).toBeInTheDocument();
+    expect(screen.queryAllByRole('button', { name: /\(confermato\)/ })).toHaveLength(4);
   });
 
   it('keeps the result usable when the dough temperature is typed', async () => {

@@ -51,6 +51,15 @@ export function formatDay(ms: number): string {
     .replace(/\./g, '');
 }
 
+/** Italian long day label, e.g. "martedì 24 novembre". */
+export function formatDayLong(ms: number): string {
+  return new Intl.DateTimeFormat('it-IT', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  }).format(new Date(ms));
+}
+
 /** "2 h 38 min", "45 min", "3 h". */
 export function formatDuration(totalMinutes: number): string {
   const total = Math.round(totalMinutes);

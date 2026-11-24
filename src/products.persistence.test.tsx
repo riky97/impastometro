@@ -62,7 +62,7 @@ describe('recipes of every product', () => {
     stop = await loadPage(storage);
     const card = screen.getByRole('heading', { name: 'Pane' }).closest('li') as HTMLElement;
     expect(within(card).getByText(/pagnotte da 500 g/)).toBeInTheDocument();
-    await user.click(within(card).getByRole('button', { name: 'Vedi ricetta' }));
+    await user.click(within(card).getByRole('button', { name: /^Vedi ricetta/ }));
     expect(screen.getByRole('heading', { name: 'Tabella di marcia' })).toBeInTheDocument();
     expect(screen.getAllByText('Seconda lievitazione').length).toBeGreaterThan(0);
     expect(JSON.parse(storage.getItem(RECIPES_KEY) as string)[0].data.pizzaId).toBe('pane');

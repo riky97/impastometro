@@ -1,44 +1,28 @@
 import { useState, type ReactNode } from 'react';
-import type { ProductId } from '../data/profiles';
 import { UNIT_LABELS, unitName } from '../data/messages.it';
-import { ClassicaIcon, ContemporaneaIcon, LoafIcon, ReccoIcon, TrayIcon } from './icons';
+import type { ProductId } from '../data/profiles';
+import { ChevronRightIcon } from './icons';
+import { ProductIcon } from './ProductIcon';
 import { btnPrimary, inputClass } from './ui';
-
-const ICONS: Record<ProductId, () => ReactNode> = {
-  classica: () => <ClassicaIcon />,
-  contemporanea: () => <ContemporaneaIcon />,
-  genovese: () => <TrayIcon />,
-  recco: () => <ReccoIcon />,
-  pane: () => <LoafIcon />,
-};
 
 export interface RecipeSummary {
   pizzaId: ProductId;
   unit: keyof typeof UNIT_LABELS;
-  pizza: string;
-  /** One line on the pizza style, from the profile. */
-  character: string;
   balls: number;
   ballWeightG: number;
   hydrationPct: number;
   flourG: number;
-  method: string;
   oven: string;
 }
 
 interface Props {
   name: string;
   summary: RecipeSummary;
-  /** Replaces the pizza-style line under the name, e.g. the step of the unfinished calculation. */
-  subtitle?: string;
-  /** The unfinished calculation: marked by a green border, not a label. */
-  highlight?: boolean;
-  primaryLabel: string;
-  onPrimary: () => void;
-  /** Rename and delete; omitted for the in-progress card. */
-  onRename?: (name: string) => void;
-  onDuplicate?: () => void;
-  onRemove?: () => void;
+  /** The whole top of the card opens the recipe. */
+  onOpen: () => void;
+  onRename: (name: string) => void;
+  onDuplicate: () => void;
+  onRemove: () => void;
 }
 
 const ghost =
@@ -53,90 +37,72 @@ function Fact({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-export function RecipeCard({
-  name,
-  summary,
-  subtitle,
-  highlight,
-  primaryLabel,
-  onPrimary,
-  onRename,
-  onDuplicate,
-  onRemove,
-}: Props) {
+/** A saved recipe: tap anywhere on the top to open it; the three actions sit below. */
+export function RecipeCard({ name, summary, onOpen, onRename, onDuplicate, onRemove }: Props) {
   const [draft, setDraft] = useState<string | null>(null);
-  // The default recipe name already starts with the style, so the line would repeat it.
-  const meta = subtitle ?? (name.startsWith(summary.pizza) ? null : summary.pizza);
 
   return (
-    <li
-      className={`rounded-2xl border bg-surface p-4 sm:p-5 ${highlight ? 'border-brand-600' : 'border-line'}`}
-    >
-      <div className="flex items-center gap-3">
-        <span className="grid size-11 shrink-0 place-items-center rounded-control bg-brand-50 text-brand-700">
-          {ICONS[summary.pizzaId]()}
-        </span>
-        <div className="min-w-0 grow">
-          {draft === null ? (
-            <h3 className="text-base font-semibold text-ink">{name}</h3>
-          ) : (
-            <form
-              className="flex gap-2"
-              onSubmit={(e) => {
-                e.preventDefault();
-                onRename?.(draft);
-                setDraft(null);
-              }}
-            >
-              <input
-                aria-label="Nome della ricetta"
-                className={`${inputClass} min-w-0 grow`}
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                autoFocus
-              />
-              <button type="submit" className={`${btnPrimary} min-h-12 px-4`}>
-                Salva nome
-              </button>
-            </form>
-          )}
-          {meta && <p className="text-sm text-ink-3">{meta}</p>}
+    <li className="rounded-2xl border border-line bg-surface">
+      <div className="relative">
+        <div className="flex items-center gap-3 p-4">
+          <ProductIcon product={summary.pizzaId} />
+          <div className="min-w-0 grow">
+            {draft === null ? (
+              <h3 className="text-base font-semibold text-ink">{name}</h3>
+            ) : (
+              <form
+                className="relative z-10 flex gap-2"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  onRename(draft);
+                  setDraft(null);
+                }}
+              >
+                <input
+                  aria-label="Nome della ricetta"
+                  className={`${inputClass} min-w-0 grow`}
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  autoFocus
+                />
+                <button type="submit" className={`${btnPrimary} min-h-12 px-4`}>
+                  Salva nome
+                </button>
+              </form>
+            )}
+            <p className="text-sm text-ink-2">
+              <span className="text-2xl font-semibold tracking-tight tabular-nums text-ink">
+                {summary.balls}
+              </span>{' '}
+              {unitName(summary.unit, summary.balls)} da {summary.ballWeightG} g
+            </p>
+          </div>
+          {draft === null && <ChevronRightIcon className="size-5 shrink-0 text-ink-3" />}
         </div>
+        <dl className="flex flex-wrap gap-x-6 gap-y-1 border-t border-line px-4 py-3 text-sm">
+          <Fact label="Idratazione">{summary.hydrationPct}%</Fact>
+          <Fact label="Farina">{summary.flourG} g</Fact>
+          <Fact label="Forno">{summary.oven}</Fact>
+        </dl>
+        {draft === null && (
+          <button
+            type="button"
+            aria-label={`Vedi ricetta: ${name}`}
+            className="absolute inset-0 rounded-t-2xl hover:bg-brand-50/40"
+            onClick={onOpen}
+          />
+        )}
       </div>
-      <p className="mt-4 text-3xl font-semibold tracking-tight tabular-nums text-ink">
-        {summary.balls}
-        <span className="ml-2 text-base font-medium text-ink-2">
-          {unitName(summary.unit, summary.balls)} da {summary.ballWeightG} g
-        </span>
-      </p>
-      <p className="mt-1.5 text-sm text-ink-2">{summary.character}</p>
-      <dl className="mt-3 grid grid-cols-2 border-t border-line pt-3 gap-x-4 gap-y-2 text-sm">
-        <Fact label="Idratazione">{summary.hydrationPct}%</Fact>
-        <Fact label="Farina">{summary.flourG} g</Fact>
-        <Fact label="Impasto">{summary.method}</Fact>
-        <Fact label="Forno">{summary.oven}</Fact>
-      </dl>
-      <div className="mt-4 space-y-1">
-        <button type="button" className={`${btnPrimary} min-h-11 w-full`} onClick={onPrimary}>
-          {primaryLabel}
+      <div className="grid grid-cols-3 border-t border-line">
+        <button type="button" className={ghost} onClick={onDuplicate}>
+          Duplica
         </button>
-        <div className="grid grid-cols-3">
-          {onDuplicate && (
-            <button type="button" className={ghost} onClick={onDuplicate}>
-              Duplica
-            </button>
-          )}
-          {onRename && (
-            <button type="button" className={ghost} onClick={() => setDraft(name)}>
-              Rinomina
-            </button>
-          )}
-          {onRemove && (
-            <button type="button" className={ghost} onClick={onRemove}>
-              Elimina
-            </button>
-          )}
-        </div>
+        <button type="button" className={ghost} onClick={() => setDraft(name)}>
+          Rinomina
+        </button>
+        <button type="button" className={ghost} onClick={onRemove}>
+          Elimina
+        </button>
       </div>
     </li>
   );

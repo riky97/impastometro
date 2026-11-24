@@ -38,6 +38,7 @@ export function StepQuantity({ state, result }: { state: WizardState; result: Ca
       {state.quantityMode === 'balls' ? (
         <NumberField
           id="balls"
+          large
           label={labels.count}
           value={state.balls}
           step={1}

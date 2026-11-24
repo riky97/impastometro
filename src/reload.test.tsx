@@ -51,7 +51,7 @@ describe('page reload', () => {
     expect(second.store.getState()).toEqual(before);
     expect(screen.getByRole('button', { name: /Farina/ })).toHaveAttribute('aria-current', 'step');
     expect(screen.getByLabelText('W minimo')).toHaveValue(300);
-    expect(screen.getByText('1 di 4 passaggi confermati')).toBeInTheDocument();
+    expect(screen.queryAllByRole('button', { name: /\(confermato\)/ })).toHaveLength(1);
 
     await user.click(screen.getByRole('button', { name: /Prodotto e strumenti/ }));
     expect(screen.getByRole('radio', { name: /Napoletana contemporanea/ })).toBeChecked();
@@ -75,7 +75,7 @@ describe('page reload', () => {
   it('survives a corrupt payload with defaults and no crash', async () => {
     storage.setItem(STORAGE_KEY, '{"version":1,"step":"oops"');
     await loadPage(storage);
-    expect(screen.getByText('0 di 4 passaggi confermati')).toBeInTheDocument();
+    expect(screen.queryAllByRole('button', { name: /\(confermato\)/ })).toHaveLength(0);
   });
 
   it('shows a banner when the saved bake time has passed, and keeps the data', async () => {

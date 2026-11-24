@@ -22,13 +22,17 @@ export function RecipeView() {
   if (!recipe || !shown) return <p className="text-ink-2">Ricetta non trovata.</p>;
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold text-ink">{recipe.name}</h2>
       {recipe.data.startLocal === undefined && (
         <p className={hintClass}>
           Questa ricetta è stata salvata senza orari: la tabella di marcia parte da adesso.
         </p>
       )}
-      <ResultView state={shown.state} result={shown.result} onToggleYeast={setShowDryYeast} />
+      <ResultView
+        state={shown.state}
+        result={shown.result}
+        title={recipe.name}
+        onToggleYeast={setShowDryYeast}
+      />
     </div>
   );
 }

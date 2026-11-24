@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ResultView } from '../components/ResultView';
 import { btnPrimary, btnSecondary } from '../components/ui';
+import { PROFILES } from '../data/profiles';
 import type { CalcResult } from '../engine/calculate';
 import { recipeActions } from '../state/recipes';
 import type { WizardState } from '../state/schema';
@@ -13,13 +14,14 @@ export function ResultScreen({ state, result }: { state: WizardState; result: Ca
     <ResultView
       state={state}
       result={result}
+      title={PROFILES[state.pizzaId].label}
       onToggleYeast={actions.setShowDryYeast}
       onDoughTemp={result.leavened ? actions.setDoughTemp : undefined}
-      footer={
+      actions={
         <>
           <button
             type="button"
-            className={`${btnPrimary} w-full`}
+            className={`${btnPrimary} min-h-11 flex-1 px-5 sm:flex-none`}
             disabled={saved}
             onClick={() => {
               recipeActions.save(state, Date.now());
@@ -28,7 +30,11 @@ export function ResultScreen({ state, result }: { state: WizardState; result: Ca
           >
             {saved ? 'Ricetta salvata' : 'Salva ricetta'}
           </button>
-          <button type="button" className={`${btnSecondary} w-full`} onClick={actions.backToWizard}>
+          <button
+            type="button"
+            className={`${btnSecondary} flex-1 sm:flex-none`}
+            onClick={actions.backToWizard}
+          >
             Modifica i dati
           </button>
         </>

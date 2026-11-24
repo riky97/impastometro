@@ -25,6 +25,18 @@ function Row({ name, grams, note }: { name: string; grams: number; note?: string
   );
 }
 
+function FigureRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-4 py-3">
+      <dt className="text-ink-2">{label}</dt>
+      <dd className="shrink-0 text-xl font-semibold tabular-nums text-ink">
+        {value}
+        <span className="ml-1 text-base font-medium text-ink-3">°C</span>
+      </dd>
+    </div>
+  );
+}
+
 export function IngredientList({ result, showDryYeast, onToggleYeast }: Props) {
   const { ingredients: ing, targetDoughTempC: target, balls } = result;
   const yeastG = showDryYeast ? ing.dryYeastG : ing.freshYeastG;
@@ -42,11 +54,10 @@ export function IngredientList({ result, showDryYeast, onToggleYeast }: Props) {
       </p>
       <dl className="mt-1 divide-y divide-line">
         <Row name="Farina" grams={ing.flourG} />
-        <Row
-          name="Acqua"
-          grams={ing.waterG}
-          note={result.leavened ? `a ${number.format(result.waterTempC)} °C` : undefined}
-        />
+        <Row name="Acqua" grams={ing.waterG} />
+        {result.leavened && (
+          <FigureRow label="Temperatura dell'acqua" value={number.format(result.waterTempC)} />
+        )}
         {result.leavened && (
           <Row
             name={showDryYeast ? 'Lievito secco' : 'Lievito di birra fresco'}
@@ -81,14 +92,9 @@ export function IngredientList({ result, showDryYeast, onToggleYeast }: Props) {
         </label>
       )}
       {result.leavened && (
-        <p className="mt-2 border-t border-line pt-3 text-sm text-ink-2">
-          Temperatura dell'impasto dopo l'impasto:{' '}
-          <strong className="font-semibold whitespace-nowrap text-ink">
-            {target.min}–{target.max}
-            {' '}°C
-          </strong>
-          .
-        </p>
+        <dl className="mt-2 border-t border-line">
+          <FigureRow label="Impasto finito a" value={`${target.min}–${target.max}`} />
+        </dl>
       )}
     </section>
   );

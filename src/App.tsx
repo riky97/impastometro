@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { NewCalculationButton } from './components/NewCalculationButton';
-import { ProgressBar } from './components/ProgressBar';
 import { StaleDatesBanner } from './components/StaleDatesBanner';
 import { calculate } from './engine/calculate';
 import { toCalcInput } from './state/selectors';
@@ -26,7 +25,7 @@ export function App() {
 
   return (
     <div
-      className={`mx-auto min-h-dvh w-full px-4 pb-10 ${showResult || recipeView ? 'max-w-5xl' : 'max-w-xl'}`}
+      className={`mx-auto min-h-dvh w-full px-4 pb-10 ${showResult || recipeView || home ? 'max-w-5xl' : 'max-w-xl'}`}
     >
       <header className="space-y-4 pt-5 pb-6">
         <div className="flex items-center justify-between gap-3">
@@ -47,7 +46,6 @@ export function App() {
         {staleDates && <StaleDatesBanner />}
         {view === 'calc' && !showResult && (
           <>
-            <ProgressBar confirmedCount={state.confirmed.filter(Boolean).length} total={4} />
             <StepTabs state={state} />
           </>
         )}

@@ -73,17 +73,21 @@ export function StepTime({ state, result }: { state: WizardState; result: CalcRe
         />
       )}
 
-      {issues.length === 0 && (
-        <p className="rounded-control bg-brand-50 p-3.5 text-sm text-ink" aria-live="polite">
-          Tempo totale: <strong>{formatDuration(result.schedule.totalMin)}</strong>
-          {result.route === 'fridge' && (
-            <>, di cui {formatDuration(result.schedule.fridgeMin)} in frigorifero</>
-          )}
-          .
-        </p>
-      )}
-
-      <StepFooter step={4} disabled={issues.length > 0} />
+      <StepFooter
+        step={4}
+        disabled={issues.length > 0}
+        summary={
+          issues.length === 0 && (
+            <>
+              Tempo totale: <strong>{formatDuration(result.schedule.totalMin)}</strong>
+              {result.route === 'fridge' && (
+                <>, di cui {formatDuration(result.schedule.fridgeMin)} in frigorifero</>
+              )}
+              .
+            </>
+          )
+        }
+      />
     </div>
   );
 }

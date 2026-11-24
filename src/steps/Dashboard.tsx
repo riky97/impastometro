@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { ConfirmDialog } from '../components/ConfirmDialog';
-import { RecipeFileActions } from '../components/RecipeFileActions';
+import { PlusIcon } from '../components/icons';
+import { ProductIcon } from '../components/ProductIcon';
 import { RecipeCard, type RecipeSummary } from '../components/RecipeCard';
-import { btnPrimary } from '../components/ui';
-import { METHODS } from '../data/methods';
+import { RecipeFileActions } from '../components/RecipeFileActions';
+import { btnPrimary, btnSecondary } from '../components/ui';
+import { unitName } from '../data/messages.it';
 import { OVENS } from '../data/ovens';
 import { PROFILES } from '../data/profiles';
 import { calculate } from '../engine/calculate';
@@ -20,15 +22,36 @@ function summarize(inputs: WizardState): RecipeSummary {
   return {
     pizzaId: inputs.pizzaId,
     unit: result.unit,
-    pizza: PROFILES[inputs.pizzaId].label,
-    character: PROFILES[inputs.pizzaId].description,
     balls: result.balls.count,
     ballWeightG: result.balls.weightG,
     hydrationPct: result.hydration.value,
     flourG: result.ingredients.flourG,
-    method: METHODS[inputs.method].label,
     oven: OVENS[inputs.ovenId].label,
   };
+}
+
+/** The unfinished calculation: one slim bar, not a card that repeats a recipe. */
+function InProgressBar({ state }: { state: WizardState }) {
+  const { balls, unit } = summarize(state);
+  const where = state.showResult ? 'Risultato pronto' : `Passaggio ${state.step} di 4`;
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border border-brand-600 bg-surface p-3">
+      <ProductIcon product={state.pizzaId} />
+      <div className="min-w-0 grow">
+        <p className="font-semibold text-ink">Calcolo in corso</p>
+        <p className="truncate text-sm text-ink-2">
+          {where} · {PROFILES[state.pizzaId].label}, {balls} {unitName(unit, balls)}
+        </p>
+      </div>
+      <button
+        type="button"
+        className={`${btnPrimary} min-h-11 shrink-0 px-4`}
+        onClick={() => setView('calc')}
+      >
+        Riprendi
+      </button>
+    </div>
+  );
 }
 
 export function Dashboard({ state }: { state: WizardState }) {
@@ -51,36 +74,28 @@ export function Dashboard({ state }: { state: WizardState }) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-lg font-semibold text-ink">Le tue ricette</h2>
         <button
           type="button"
-          className={`${btnPrimary} min-h-11`}
+          className={`${btnSecondary} gap-2`}
           onClick={() => (inProgress ? setConfirm({ kind: 'new' }) : startNew())}
         >
+          <PlusIcon className="size-5" />
           Nuovo impasto
         </button>
       </div>
 
-      <ul className="grid gap-4">
-        {inProgress && (
-          <RecipeCard
-            highlight
-            name="Calcolo in corso"
-            subtitle={`${state.showResult ? 'Risultato pronto' : `Passaggio ${state.step} di 4`} · ${PROFILES[state.pizzaId].label}`}
-            summary={summarize(state)}
-            primaryLabel="Riprendi"
-            onPrimary={() => setView('calc')}
-          />
-        )}
+      {inProgress && <InProgressBar state={state} />}
+
+      <ul className="grid gap-3 md:grid-cols-2">
         {recipes.map((recipe) => (
           <RecipeCard
             key={recipe.id}
             name={recipe.name}
             summary={summarize({ ...createDefaultState(now), ...recipe.data })}
-            primaryLabel="Vedi ricetta"
-            onPrimary={() => showRecipe(recipe.id)}
+            onOpen={() => showRecipe(recipe.id)}
             onRename={(name) => recipeActions.rename(recipe.id, name)}
             onDuplicate={() =>
               inProgress ? setConfirm({ kind: 'duplicate', recipe }) : duplicate(recipe)

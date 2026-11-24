@@ -20,6 +20,8 @@ interface Props {
   /** Controls shown on either side of the input (e.g. stepper buttons). */
   startSlot?: ReactNode;
   endSlot?: ReactNode;
+  /** A big, centred figure: for the one number the step is about. */
+  large?: boolean;
 }
 
 /** Numeric input that lets the user type freely and only reports valid numbers. */
@@ -39,6 +41,7 @@ export function NumberField({
   describedBy: externalDescribedBy,
   startSlot,
   endSlot,
+  large,
 }: Props) {
   // Text being typed; null while the field is not being edited.
   const [draft, setDraft] = useState<string | null>(null);
@@ -80,7 +83,7 @@ export function NumberField({
           onBlur={() => setDraft(null)}
           aria-invalid={error || invalid ? true : undefined}
           aria-describedby={describedBy || undefined}
-          className={`${inputClass} min-w-0 grow`}
+          className={`${inputClass} min-w-0 grow ${large ? 'text-center text-3xl! font-semibold tabular-nums' : ''}`}
         />
         {endSlot}
       </div>

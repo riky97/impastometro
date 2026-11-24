@@ -1,4 +1,4 @@
-import { formatClock, formatDay, formatDuration } from '../engine/dates';
+import { formatClock, formatDayLong, formatDuration } from '../engine/dates';
 import type { Phase, PhaseId } from '../engine/types';
 
 /** Warm phases in green/sand, the cold phase in slate: temperature reads before the labels do. */
@@ -38,7 +38,7 @@ export function TimelineBar({
   );
 }
 
-/** Phase list with start timestamps and durations. `numbers` maps a phase to its step number. */
+/** Phase list grouped by day: the clock time first and large, then the phase and its duration. */
 export function PhaseList({
   phases,
   numbers,
@@ -48,27 +48,44 @@ export function PhaseList({
   numbers: ReadonlyMap<PhaseId, number>;
   titles: Record<PhaseId, string>;
 }) {
+  const days: { day: string; items: Phase[] }[] = [];
+  for (const p of phases) {
+    const day = formatDayLong(p.startMs);
+    const last = days[days.length - 1];
+    if (last?.day === day) last.items.push(p);
+    else days.push({ day, items: [p] });
+  }
   return (
-    <ol className="divide-y divide-line">
-      {phases.map((p) => (
-        <li key={p.id} className="flex items-center gap-3 py-3">
-          <span
-            aria-hidden
-            className={`size-2.5 shrink-0 rounded-full ${
-              p.kind === 'span' ? (SERIES[p.id] ?? 'bg-line-strong') : 'border-2 border-ink-3'
-            }`}
-          />
-          <span className="min-w-0 grow font-medium text-ink">
-            <span className="tabular-nums text-ink-3">{numbers.get(p.id)}.</span> {titles[p.id]}
-          </span>
-          <span className="shrink-0 text-right text-sm leading-snug tabular-nums text-ink-2">
-            <span className="block font-semibold text-ink">
-              {formatDay(p.startMs)}, {formatClock(p.startMs)}
-            </span>
-            {p.kind === 'span' && <span className="block">{formatDuration(p.durationMin)}</span>}
-          </span>
-        </li>
+    <div>
+      {days.map(({ day, items }) => (
+        <section key={day} aria-label={day}>
+          <h3 className="pt-3 text-xs font-medium tracking-wide text-ink-3 uppercase">{day}</h3>
+          <ol className="divide-y divide-line">
+            {items.map((p) => (
+              <li key={p.id} className="flex items-center gap-3 py-3">
+                <span className="w-14 shrink-0 text-xl font-semibold tabular-nums text-ink">
+                  {formatClock(p.startMs)}
+                </span>
+                <span
+                  aria-hidden
+                  className={`size-2.5 shrink-0 rounded-full ${
+                    p.kind === 'span' ? (SERIES[p.id] ?? 'bg-line-strong') : 'border-2 border-ink-3'
+                  }`}
+                />
+                <span className="min-w-0 grow font-medium text-ink">
+                  <span className="tabular-nums text-ink-3">{numbers.get(p.id)}.</span>{' '}
+                  {titles[p.id]}
+                </span>
+                {p.kind === 'span' && (
+                  <span className="shrink-0 text-sm tabular-nums text-ink-2">
+                    {formatDuration(p.durationMin)}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ol>
+        </section>
       ))}
-    </ol>
+    </div>
   );
 }

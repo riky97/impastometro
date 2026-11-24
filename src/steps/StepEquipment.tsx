@@ -26,7 +26,8 @@ export function StepEquipment({ state }: { state: WizardState }) {
       label: PROFILES[id].label,
       description: PROFILES[id].description,
       badge:
-        isPizza && PROFILES[id].kind === 'pizza' ? (
+        // Only a warning is worth a tag: "recommended" is the normal case.
+        isPizza && PROFILES[id].kind === 'pizza' && level !== 'recommended' ? (
           <Badge level={level} label={SUITABILITY_LABELS[level]} />
         ) : undefined,
     };

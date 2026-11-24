@@ -7,7 +7,7 @@ import { phaseTitles } from '../data/procedures.it';
 import { PROFILES } from '../data/profiles';
 import { cardClass, sectionTitle } from './ui';
 import type { CalcResult } from '../engine/calculate';
-import { formatDuration } from '../engine/dates';
+import { formatClock, formatDay, formatDuration } from '../engine/dates';
 import type { PhaseId } from '../engine/types';
 import type { WizardState } from '../state/schema';
 
@@ -29,68 +29,89 @@ interface Props {
   onToggleYeast: (showDry: boolean) => void;
   /** Omitted on a saved recipe: the measured temperature is already part of what was saved. */
   onDoughTemp?: (value: number | null) => void;
-  footer?: ReactNode;
+  /** Heading of the page: the product, or the recipe name. */
+  title: string;
+  /** Buttons next to the heading (save, edit). */
+  actions?: ReactNode;
 }
 
 /** The final page: summary, ingredients, timeline and procedure. Knows nothing about the stores. */
-export function ResultView({ state, result, onToggleYeast, onDoughTemp, footer }: Props) {
+export function ResultView({ state, result, onToggleYeast, onDoughTemp, title, actions }: Props) {
   const { schedule, ingredients } = result;
   const titles = phaseTitles(PROFILES[state.pizzaId], result.route);
   const numbers = new Map<PhaseId, number>(result.procedure.map((p, i) => [p.id, i + 1]));
+  const bakeMs = schedule.phases[schedule.phases.length - 1]?.startMs ?? 0;
+  const route = result.leavened
+    ? result.route === 'fridge'
+      ? 'Con frigorifero · '
+      : 'Senza frigorifero · '
+    : '';
 
   // Phone: summary, ingredients, timeline, procedure, then the optional re-plan card. Desktop: two
   // columns (wrappers become real blocks and `order-*` stops applying).
   return (
-    <div className="grid gap-6 lg:grid-cols-2 lg:items-start lg:gap-8">
-      <div className="contents lg:block lg:space-y-6">
-        <dl className="order-1 grid grid-cols-[1fr_1.45fr_1fr] divide-x divide-line rounded-2xl border border-line bg-surface">
-          <SummaryCell label="Idratazione" value={String(result.hydration.value)} unit="%" />
-          <SummaryCell label="Tempo totale" value={formatDuration(schedule.totalMin)} />
-          <SummaryCell label="Impasto" value={String(ingredients.totalG)} unit="g" />
-        </dl>
-
-        <div className="order-2">
-          <IngredientList
-            result={result}
-            showDryYeast={state.showDryYeast}
-            onToggleYeast={onToggleYeast}
-          />
+    <div className="space-y-5">
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-xl font-semibold text-ink">{title}</h2>
+          <p className="text-sm text-ink-2">
+            {route}cottura{' '}
+            <strong className="font-semibold text-ink">
+              {formatDay(bakeMs)}, {formatClock(bakeMs)}
+            </strong>
+          </p>
         </div>
+        {actions && <div className="flex w-full gap-2 sm:w-auto">{actions}</div>}
+      </header>
+      <div className="grid gap-6 lg:grid-cols-2 lg:items-start lg:gap-8">
+        <div className="contents lg:block lg:space-y-6">
+          <dl className="order-1 grid grid-cols-[1fr_1.45fr_1fr] divide-x divide-line rounded-2xl border border-line bg-surface">
+            <SummaryCell label="Idratazione" value={String(result.hydration.value)} unit="%" />
+            <SummaryCell label="Tempo totale" value={formatDuration(schedule.totalMin)} />
+            <SummaryCell label="Impasto" value={String(ingredients.totalG)} unit="g" />
+          </dl>
 
-        {onDoughTemp && (
-          <section className={`${cardClass} order-5`} aria-labelledby="dough-temp-title">
-            <h2 id="dough-temp-title" className={`${sectionTitle} mb-3 text-lg`}>
-              Temperatura reale dell'impasto
-            </h2>
-            <NumberField
-              id="dough-temp"
-              label="Temperatura misurata dopo l'impasto"
-              unit="°C"
-              value={state.doughTempC}
-              onChange={onDoughTemp}
-              onClear={() => onDoughTemp(null)}
-              hint="Facoltativa: se la inserisci, la tabella di marcia viene ricalcolata."
+          <div className="order-2">
+            <IngredientList
+              result={result}
+              showDryYeast={state.showDryYeast}
+              onToggleYeast={onToggleYeast}
             />
-          </section>
-        )}
-      </div>
-
-      <div className="contents lg:block lg:space-y-6">
-        <section className={`${cardClass} order-3`} aria-labelledby="timeline-title">
-          <h2 id="timeline-title" className={`${sectionTitle} mb-4 text-lg`}>
-            Tabella di marcia
-          </h2>
-          <TimelineBar phases={schedule.phases} titles={titles} />
-          <div className="mt-2">
-            <PhaseList phases={schedule.phases} numbers={numbers} titles={titles} />
           </div>
-        </section>
 
-        <div className="order-4">
-          <PhaseStepper procedure={result.procedure} />
+          {onDoughTemp && (
+            <section className={`${cardClass} order-5`} aria-labelledby="dough-temp-title">
+              <h2 id="dough-temp-title" className={`${sectionTitle} mb-3 text-lg`}>
+                Temperatura reale dell'impasto
+              </h2>
+              <NumberField
+                id="dough-temp"
+                label="Temperatura misurata dopo l'impasto"
+                unit="°C"
+                value={state.doughTempC}
+                onChange={onDoughTemp}
+                onClear={() => onDoughTemp(null)}
+                hint="Facoltativa: se la inserisci, la tabella di marcia viene ricalcolata."
+              />
+            </section>
+          )}
         </div>
 
-        {footer && <div className="order-6 space-y-2">{footer}</div>}
+        <div className="contents lg:block lg:space-y-6">
+          <section className={`${cardClass} order-3`} aria-labelledby="timeline-title">
+            <h2 id="timeline-title" className={`${sectionTitle} mb-4 text-lg`}>
+              Tabella di marcia
+            </h2>
+            <TimelineBar phases={schedule.phases} titles={titles} />
+            <div className="mt-2">
+              <PhaseList phases={schedule.phases} numbers={numbers} titles={titles} />
+            </div>
+          </section>
+
+          <div className="order-4">
+            <PhaseStepper procedure={result.procedure} />
+          </div>
+        </div>
       </div>
     </div>
   );

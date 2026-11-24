@@ -39,7 +39,7 @@ describe('dashboard', () => {
     expect(screen.getByRole('heading', { name: 'Le tue ricette' })).toBeInTheDocument();
     expect(screen.getByText(/Nessuna ricetta salvata/)).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Nuovo impasto' }));
-    expect(screen.getByText('0 di 4 passaggi confermati')).toBeInTheDocument();
+    expect(screen.queryAllByRole('button', { name: /\(confermato\)/ })).toHaveLength(0);
   });
 
   it('saves a recipe from the result and shows it as a card with the essentials', async () => {
@@ -56,7 +56,6 @@ describe('dashboard', () => {
       .getByRole('heading', { name: 'Napoletana contemporanea' })
       .closest('li') as HTMLElement;
     expect(within(card).getByText(/panetti da 260 g/)).toBeInTheDocument();
-    expect(within(card).getByText('Spirale')).toBeInTheDocument();
     expect(within(card).getByText('Forno a gas')).toBeInTheDocument();
     expect(storage.getItem(RECIPES_KEY)).toContain('contemporanea');
   });
@@ -77,9 +76,10 @@ describe('dashboard', () => {
 
     stop = await loadPage(storage);
     expect(screen.getByRole('heading', { name: 'Napoletana classica' })).toBeVisible();
-    await user.click(screen.getByRole('button', { name: 'Vedi ricetta' }));
+    await user.click(screen.getByRole('button', { name: /^Vedi ricetta/ }));
     expect(screen.getByRole('heading', { name: 'Tabella di marcia' })).toBeInTheDocument();
-    expect(screen.getByText('ven 20 nov, 15:30')).toBeInTheDocument();
+    expect(screen.getByText('venerdì 20 novembre')).toBeInTheDocument();
+    expect(screen.getByText('15:30')).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: /Temperatura reale/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Salva ricetta' })).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Ricette' }));
@@ -108,7 +108,7 @@ describe('dashboard', () => {
     storage.setItem(RECIPES_KEY, JSON.stringify(old));
 
     stop = await loadPage(storage);
-    await user.click(screen.getByRole('button', { name: 'Vedi ricetta' }));
+    await user.click(screen.getByRole('button', { name: /^Vedi ricetta/ }));
     expect(screen.getByText(/salvata senza orari/)).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Tabella di marcia' })).toBeInTheDocument();
     stop();
@@ -178,7 +178,7 @@ describe('dashboard', () => {
       'aria-current',
       'step',
     );
-    expect(screen.getByText('3 di 4 passaggi confermati')).toBeInTheDocument();
+    expect(screen.queryAllByRole('button', { name: /\(confermato\)/ })).toHaveLength(3);
     expect(wizardStore.getState().startLocal).not.toBe('2026-11-20T15:30');
     stop();
   });
