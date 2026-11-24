@@ -264,6 +264,14 @@ rail is the list. The result page puts its two columns side by side only when th
 wide enough (a container query), because the rail takes a third of the screen. On phones nothing
 changes: cards open on tap and the unfinished calculation is a slim bar above them.
 
+### Next phase and "Adesso"
+
+The result opens with a strip, one basil border and nothing else: "Prossima fase", the phase, its
+clock time at 30 px and "tra 15 min". It only exists while the plan is still ahead (a plan that
+is over shows nothing). In the timeline the next phase has a basil mist background and a thin basil
+line labelled "Adesso" marks the present moment. The clock is read in one place (`useNow`, once a
+minute); the engine stays free of it.
+
 ### Products
 
 Five products share one system: two pizzas, focaccia genovese, focaccia di Recco and pane. The

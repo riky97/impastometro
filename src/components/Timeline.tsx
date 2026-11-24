@@ -1,4 +1,6 @@
+import { Fragment } from 'react';
 import { formatClock, formatDayLong, formatDuration } from '../engine/dates';
+import { nextPhase } from '../engine/progress';
 import type { Phase, PhaseId } from '../engine/types';
 
 /** Warm phases in green/sand, the cold phase in slate: temperature reads before the labels do. */
@@ -43,11 +45,15 @@ export function PhaseList({
   phases,
   numbers,
   titles,
+  nowMs,
 }: {
   phases: readonly Phase[];
   numbers: ReadonlyMap<PhaseId, number>;
   titles: Record<PhaseId, string>;
+  /** When given, the next phase is highlighted and a line marks the present moment. */
+  nowMs?: number;
 }) {
+  const next = nowMs === undefined ? null : nextPhase(phases, nowMs);
   const days: { day: string; items: Phase[] }[] = [];
   for (const p of phases) {
     const day = formatDayLong(p.startMs);
@@ -62,26 +68,41 @@ export function PhaseList({
           <h3 className="pt-3 text-xs font-medium tracking-wide text-ink-3 uppercase">{day}</h3>
           <ol className="divide-y divide-line">
             {items.map((p) => (
-              <li key={p.id} className="flex items-center gap-3 py-3">
-                <span className="w-14 shrink-0 text-xl font-semibold tabular-nums text-ink">
-                  {formatClock(p.startMs)}
-                </span>
-                <span
-                  aria-hidden
-                  className={`size-2.5 shrink-0 rounded-full ${
-                    p.kind === 'span' ? (SERIES[p.id] ?? 'bg-line-strong') : 'border-2 border-ink-3'
-                  }`}
-                />
-                <span className="min-w-0 grow font-medium text-ink">
-                  <span className="tabular-nums text-ink-3">{numbers.get(p.id)}.</span>{' '}
-                  {titles[p.id]}
-                </span>
-                {p.kind === 'span' && (
-                  <span className="shrink-0 text-sm tabular-nums text-ink-2">
-                    {formatDuration(p.durationMin)}
-                  </span>
+              <Fragment key={p.id}>
+                {next?.underway && next.phase.id === p.id && nowMs !== undefined && (
+                  <li
+                    aria-label={`Adesso: ${formatClock(nowMs)}`}
+                    className="flex items-center gap-3 border-t-2 border-brand-600 py-1.5 text-sm font-semibold text-brand-800"
+                  >
+                    <span className="w-14 shrink-0 tabular-nums">{formatClock(nowMs)}</span>
+                    <span>Adesso</span>
+                  </li>
                 )}
-              </li>
+                <li
+                  className={`flex items-center gap-3 py-3 ${next?.phase.id === p.id ? 'rounded-control bg-brand-50' : ''}`}
+                >
+                  <span className="w-14 shrink-0 text-xl font-semibold tabular-nums text-ink">
+                    {formatClock(p.startMs)}
+                  </span>
+                  <span
+                    aria-hidden
+                    className={`size-2.5 shrink-0 rounded-full ${
+                      p.kind === 'span'
+                        ? (SERIES[p.id] ?? 'bg-line-strong')
+                        : 'border-2 border-ink-3'
+                    }`}
+                  />
+                  <span className="min-w-0 grow font-medium text-ink">
+                    <span className="tabular-nums text-ink-3">{numbers.get(p.id)}.</span>{' '}
+                    {titles[p.id]}
+                  </span>
+                  {p.kind === 'span' && (
+                    <span className="shrink-0 text-sm tabular-nums text-ink-2">
+                      {formatDuration(p.durationMin)}
+                    </span>
+                  )}
+                </li>
+              </Fragment>
             ))}
           </ol>
         </section>

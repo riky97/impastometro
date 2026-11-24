@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { IngredientList } from './IngredientList';
+import { NextPhaseStrip } from './NextPhaseStrip';
 import { NumberField } from './NumberField';
 import { PhaseStepper } from './PhaseStepper';
 import { PhaseList, TimelineBar } from './Timeline';
@@ -9,6 +10,7 @@ import { cardClass, sectionTitle } from './ui';
 import type { CalcResult } from '../engine/calculate';
 import { formatClock, formatDay, formatDuration } from '../engine/dates';
 import type { PhaseId } from '../engine/types';
+import { useNow } from '../state/clock';
 import type { WizardState } from '../state/schema';
 
 function SummaryCell({ label, value, unit }: { label: string; value: string; unit?: string }) {
@@ -38,6 +40,7 @@ interface Props {
 /** The final page: summary, ingredients, timeline and procedure. Knows nothing about the stores. */
 export function ResultView({ state, result, onToggleYeast, onDoughTemp, title, actions }: Props) {
   const { schedule, ingredients } = result;
+  const nowMs = useNow();
   const titles = phaseTitles(PROFILES[state.pizzaId], result.route);
   const numbers = new Map<PhaseId, number>(result.procedure.map((p, i) => [p.id, i + 1]));
   const bakeMs = schedule.phases[schedule.phases.length - 1]?.startMs ?? 0;
@@ -64,6 +67,7 @@ export function ResultView({ state, result, onToggleYeast, onDoughTemp, title, a
         </div>
         {actions && <div className="flex w-full gap-2 sm:w-auto">{actions}</div>}
       </header>
+      <NextPhaseStrip phases={schedule.phases} titles={titles} numbers={numbers} nowMs={nowMs} />
       <div className="grid gap-6 @4xl:grid-cols-2 @4xl:items-start @4xl:gap-8">
         <div className="contents @4xl:block @4xl:space-y-6">
           <dl className="order-1 grid grid-cols-[1fr_1.45fr_1fr] divide-x divide-line rounded-2xl border border-line bg-surface">
@@ -105,7 +109,7 @@ export function ResultView({ state, result, onToggleYeast, onDoughTemp, title, a
             </h2>
             <TimelineBar phases={schedule.phases} titles={titles} />
             <div className="mt-2">
-              <PhaseList phases={schedule.phases} numbers={numbers} titles={titles} />
+              <PhaseList phases={schedule.phases} numbers={numbers} titles={titles} nowMs={nowMs} />
             </div>
           </section>
 
