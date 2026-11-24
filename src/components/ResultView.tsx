@@ -48,9 +48,10 @@ export function ResultView({ state, result, onToggleYeast, onDoughTemp, title, a
     : '';
 
   // Phone: summary, ingredients, timeline, procedure, then the optional re-plan card. Desktop: two
-  // columns (wrappers become real blocks and `order-*` stops applying).
+  // columns (wrappers become real blocks and `order-*` stops applying). The breakpoint is the width of
+  // the page itself, not of the screen, because the desktop rail takes a third of it..
   return (
-    <div className="space-y-5">
+    <div className="@container space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
           <h2 className="text-xl font-semibold text-ink">{title}</h2>
@@ -63,8 +64,8 @@ export function ResultView({ state, result, onToggleYeast, onDoughTemp, title, a
         </div>
         {actions && <div className="flex w-full gap-2 sm:w-auto">{actions}</div>}
       </header>
-      <div className="grid gap-6 lg:grid-cols-2 lg:items-start lg:gap-8">
-        <div className="contents lg:block lg:space-y-6">
+      <div className="grid gap-6 @4xl:grid-cols-2 @4xl:items-start @4xl:gap-8">
+        <div className="contents @4xl:block @4xl:space-y-6">
           <dl className="order-1 grid grid-cols-[1fr_1.45fr_1fr] divide-x divide-line rounded-2xl border border-line bg-surface">
             <SummaryCell label="Idratazione" value={String(result.hydration.value)} unit="%" />
             <SummaryCell label="Tempo totale" value={formatDuration(schedule.totalMin)} />
@@ -97,7 +98,7 @@ export function ResultView({ state, result, onToggleYeast, onDoughTemp, title, a
           )}
         </div>
 
-        <div className="contents lg:block lg:space-y-6">
+        <div className="contents @4xl:block @4xl:space-y-6">
           <section className={`${cardClass} order-3`} aria-labelledby="timeline-title">
             <h2 id="timeline-title" className={`${sectionTitle} mb-4 text-lg`}>
               Tabella di marcia

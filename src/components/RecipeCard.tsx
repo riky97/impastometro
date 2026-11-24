@@ -1,19 +1,9 @@
 import { useState, type ReactNode } from 'react';
-import { UNIT_LABELS, unitName } from '../data/messages.it';
-import type { ProductId } from '../data/profiles';
+import { unitName } from '../data/messages.it';
+import type { RecipeSummary } from '../state/summary';
 import { ChevronRightIcon } from './icons';
 import { ProductIcon } from './ProductIcon';
 import { btnPrimary, inputClass } from './ui';
-
-export interface RecipeSummary {
-  pizzaId: ProductId;
-  unit: keyof typeof UNIT_LABELS;
-  balls: number;
-  ballWeightG: number;
-  hydrationPct: number;
-  flourG: number;
-  oven: string;
-}
 
 interface Props {
   name: string;

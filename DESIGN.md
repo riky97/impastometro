@@ -255,6 +255,15 @@ A 12 px rounded bar of segments sized by duration (2 px gaps, min 6 px) over a l
 
 Confirm dialog: 1rem white panel, max 24rem, the only elevated surface. Progress bar: 4 px, Basil on Hairline.
 
+### Layout on wide screens
+
+From 1024 px a rail (19 rem, white, one hairline on its right) sits on the left: the title, "Nuovo
+impasto", the unfinished calculation and the saved recipes as compact rows, export and import at the
+bottom. The calculation or the recipe page fills the rest. There is no dashboard grid there: the
+rail is the list. The result page puts its two columns side by side only when the page itself is
+wide enough (a container query), because the rail takes a third of the screen. On phones nothing
+changes: cards open on tap and the unfinished calculation is a slim bar above them.
+
 ### Products
 
 Five products share one system: two pizzas, focaccia genovese, focaccia di Recco and pane. The
