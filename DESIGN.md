@@ -237,6 +237,16 @@ A 12 px rounded bar of segments sized by duration (2 px gaps, min 6 px) over a l
 ### Dialog and progress
 Confirm dialog: 1rem white panel, max 24rem, the only elevated surface. Progress bar: 4 px, Basil on Hairline.
 
+### shadcn/ui
+
+shadcn/ui is set up (`components.json`, style radix-nova, components in `src/components/ui`, helper
+`cn` in `src/lib/utils.ts`, MCP server in `.mcp.json`). Its tokens are mapped onto this system in
+`src/index.css` rather than imported as a second palette: `--primary` is basil `#1f5a3a`,
+`--background` the ground, `--card` the white surface, `--border` the hairline, `--ring` basil,
+`--radius` 0.75rem. There is no dark theme and no Geist font; the system stack stays. A shadcn
+component is only added when it replaces hand-written markup, and it must read as one of the
+components above (flat, hairline border, 44 px targets), not as a second visual language.
+
 ## Do's and Don'ts
 
 ### Do:
